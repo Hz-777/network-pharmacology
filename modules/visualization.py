@@ -22,9 +22,22 @@ import io, base64
 
 # ── Font setup ────────────────────────────────────────────────────────────────
 import matplotlib.font_manager as fm
+fm.fontManager.__init__()          # rebuild cache so newly-installed fonts appear
 _avail = {f.name for f in fm.fontManager.ttflist}
-_cjk   = [f for f in ["Arial Unicode MS","PingFang SC","Heiti SC","Microsoft YaHei","SimHei"] if f in _avail]
-_body  = (_cjk + ["DejaVu Sans"])[0]
+_CJK_CANDIDATES = [
+    # macOS
+    "STHeiti", "Heiti TC", "PingFang HK", "PingFang SC", "Songti SC",
+    "Arial Unicode MS",
+    # Windows
+    "Microsoft YaHei", "SimHei", "SimSun", "KaiTi",
+    # Linux (fonts-wqy-zenhei / fonts-wqy-microhei)
+    "WenQuanYi Zen Hei", "WenQuanYi Micro Hei",
+    # Noto CJK (Linux / Google)
+    "Noto Sans CJK SC", "Noto Sans CJK TC", "Noto Sans CJK JP",
+    "Noto Sans SC",
+]
+_cjk  = [f for f in _CJK_CANDIDATES if f in _avail]
+_body = (_cjk + ["DejaVu Sans"])[0]
 
 plt.rcParams.update({
     "font.family":        _cjk + ["DejaVu Sans"] if _cjk else ["DejaVu Sans"],
