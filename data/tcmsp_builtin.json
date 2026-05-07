@@ -1,0 +1,248 @@
+{
+  "黄连": [
+    {"mol_name": "Berberine",      "OB": 36.86, "DL": 0.78, "MW": 336.37},
+    {"mol_name": "Coptisine",      "OB": 30.67, "DL": 0.86, "MW": 320.34},
+    {"mol_name": "Palmatine",      "OB": 64.60, "DL": 0.65, "MW": 352.40},
+    {"mol_name": "Jatrorrhizine",  "OB": 47.14, "DL": 0.77, "MW": 338.40},
+    {"mol_name": "Epiberberine",   "OB": 43.09, "DL": 0.78, "MW": 336.37},
+    {"mol_name": "Worenine",       "OB": 45.24, "DL": 0.79, "MW": 348.39},
+    {"mol_name": "Columbamine",    "OB": 54.12, "DL": 0.65, "MW": 338.40}
+  ],
+  "黄芩": [
+    {"mol_name": "Baicalein",         "OB": 33.52, "DL": 0.21, "MW": 270.24},
+    {"mol_name": "Wogonin",           "OB": 30.68, "DL": 0.23, "MW": 284.27},
+    {"mol_name": "Baicalin",          "OB": 40.12, "DL": 0.75, "MW": 446.37},
+    {"mol_name": "Scutellarein",      "OB": 30.20, "DL": 0.20, "MW": 286.24},
+    {"mol_name": "Skullcapflavone II","OB": 44.42, "DL": 0.44, "MW": 372.33},
+    {"mol_name": "Oroxylin A",        "OB": 37.84, "DL": 0.22, "MW": 284.27},
+    {"mol_name": "Norwogonin",        "OB": 39.40, "DL": 0.21, "MW": 270.24}
+  ],
+  "甘草": [
+    {"mol_name": "Liquiritigenin",    "OB": 32.33, "DL": 0.18, "MW": 256.26},
+    {"mol_name": "Isoliquiritigenin", "OB": 44.90, "DL": 0.15, "MW": 256.26},
+    {"mol_name": "Glabrol",           "OB": 46.27, "DL": 0.44, "MW": 354.45},
+    {"mol_name": "Licochalcone A",    "OB": 40.79, "DL": 0.21, "MW": 338.40},
+    {"mol_name": "Licochalcone B",    "OB": 76.76, "DL": 0.19, "MW": 354.40},
+    {"mol_name": "Glycyrrhizin",      "OB": 31.71, "DL": 0.78, "MW": 822.93},
+    {"mol_name": "Glabridin",         "OB": 53.25, "DL": 0.46, "MW": 324.37},
+    {"mol_name": "Formononetin",      "OB": 69.67, "DL": 0.21, "MW": 268.27},
+    {"mol_name": "Naringenin",        "OB": 59.29, "DL": 0.21, "MW": 272.27},
+    {"mol_name": "Quercetin",         "OB": 46.43, "DL": 0.28, "MW": 302.24}
+  ],
+  "人参": [
+    {"mol_name": "Ginsenoside Rh2",    "OB": 36.32, "DL": 0.56, "MW": 622.86},
+    {"mol_name": "Ginsenoside Rg1",    "OB": 18.43, "DL": 0.56, "MW": 800.97},
+    {"mol_name": "Panaxadiol",         "OB": 33.08, "DL": 0.78, "MW": 460.73},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
+    {"mol_name": "Stigmasterol",       "OB": 43.83, "DL": 0.76, "MW": 412.69},
+    {"mol_name": "Kaempferol",         "OB": 41.88, "DL": 0.24, "MW": 286.24},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24}
+  ],
+  "黄芪": [
+    {"mol_name": "Formononetin",       "OB": 69.67, "DL": 0.21, "MW": 268.27},
+    {"mol_name": "Calycosin",          "OB": 47.75, "DL": 0.24, "MW": 284.27},
+    {"mol_name": "Astragaloside IV",   "OB": 23.54, "DL": 0.78, "MW": 868.06},
+    {"mol_name": "Cycloastragenol",    "OB": 36.74, "DL": 0.78, "MW": 490.72},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
+    {"mol_name": "Isorhamnetin",       "OB": 49.60, "DL": 0.31, "MW": 316.27},
+    {"mol_name": "Kaempferol",         "OB": 41.88, "DL": 0.24, "MW": 286.24},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+  ],
+  "丹参": [
+    {"mol_name": "Tanshinone IIA",     "OB": 49.89, "DL": 0.40, "MW": 294.35},
+    {"mol_name": "Tanshinone I",       "OB": 38.88, "DL": 0.30, "MW": 276.34},
+    {"mol_name": "Cryptotanshinone",   "OB": 52.34, "DL": 0.67, "MW": 296.36},
+    {"mol_name": "Dihydrotanshinone",  "OB": 37.14, "DL": 0.29, "MW": 278.35},
+    {"mol_name": "Salvianolic acid B", "OB": 32.91, "DL": 0.78, "MW": 718.61},
+    {"mol_name": "Rosmarinic acid",    "OB": 36.58, "DL": 0.28, "MW": 360.33},
+    {"mol_name": "Danshensu",          "OB": 66.73, "DL": 0.04, "MW": 198.19},
+    {"mol_name": "Miltirone",          "OB": 36.94, "DL": 0.25, "MW": 262.35}
+  ],
+  "当归": [
+    {"mol_name": "Z-Ligustilide",      "OB": 76.97, "DL": 0.20, "MW": 190.24},
+    {"mol_name": "Ferulic acid",       "OB": 30.24, "DL": 0.04, "MW": 194.19},
+    {"mol_name": "Butylidenephthalide","OB": 43.29, "DL": 0.16, "MW": 188.22},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
+    {"mol_name": "Senkyunolide A",     "OB": 53.09, "DL": 0.14, "MW": 192.21},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24}
+  ],
+  "川芎": [
+    {"mol_name": "Z-Ligustilide",      "OB": 76.97, "DL": 0.20, "MW": 190.24},
+    {"mol_name": "Ferulic acid",       "OB": 30.24, "DL": 0.04, "MW": 194.19},
+    {"mol_name": "Cnidilide",          "OB": 43.79, "DL": 0.16, "MW": 192.21},
+    {"mol_name": "Senkyunolide A",     "OB": 53.09, "DL": 0.14, "MW": 192.21},
+    {"mol_name": "Tetramethylpyrazine","OB": 40.82, "DL": 0.08, "MW": 136.19},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+  ],
+  "柴胡": [
+    {"mol_name": "Saikosaponin A",     "OB": 33.25, "DL": 0.78, "MW": 780.97},
+    {"mol_name": "Saikosaponin D",     "OB": 35.92, "DL": 0.78, "MW": 780.97},
+    {"mol_name": "Rutin",              "OB": 31.90, "DL": 0.80, "MW": 610.52},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
+    {"mol_name": "Kaempferol",         "OB": 41.88, "DL": 0.24, "MW": 286.24},
+    {"mol_name": "Isorhamnetin",       "OB": 49.60, "DL": 0.31, "MW": 316.27},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+  ],
+  "茯苓": [
+    {"mol_name": "Pachymic acid",      "OB": 33.64, "DL": 0.78, "MW": 528.75},
+    {"mol_name": "Trametenolic acid",  "OB": 38.72, "DL": 0.78, "MW": 512.75},
+    {"mol_name": "Dehydrotumulosic acid","OB":30.97,"DL": 0.78, "MW": 526.73},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
+    {"mol_name": "Ergosterol",         "OB": 43.51, "DL": 0.72, "MW": 396.66}
+  ],
+  "白术": [
+    {"mol_name": "Atractylenolide I",  "OB": 39.37, "DL": 0.19, "MW": 232.32},
+    {"mol_name": "Atractylenolide II", "OB": 35.31, "DL": 0.19, "MW": 234.34},
+    {"mol_name": "Atractylenolide III","OB": 41.53, "DL": 0.19, "MW": 250.33},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
+    {"mol_name": "Stigmasterol",       "OB": 43.83, "DL": 0.76, "MW": 412.69}
+  ],
+  "陈皮": [
+    {"mol_name": "Hesperidin",         "OB": 30.07, "DL": 0.69, "MW": 610.57},
+    {"mol_name": "Nobiletin",          "OB": 50.48, "DL": 0.48, "MW": 402.38},
+    {"mol_name": "Tangeretin",         "OB": 45.05, "DL": 0.39, "MW": 372.37},
+    {"mol_name": "Naringenin",         "OB": 59.29, "DL": 0.21, "MW": 272.27},
+    {"mol_name": "Sinensetin",         "OB": 69.74, "DL": 0.41, "MW": 402.38},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+  ],
+  "大黄": [
+    {"mol_name": "Emodin",             "OB": 31.57, "DL": 0.24, "MW": 270.24},
+    {"mol_name": "Aloe-emodin",        "OB": 43.56, "DL": 0.24, "MW": 270.24},
+    {"mol_name": "Rhein",              "OB": 47.07, "DL": 0.28, "MW": 284.22},
+    {"mol_name": "Chrysophanol",       "OB": 36.91, "DL": 0.24, "MW": 254.24},
+    {"mol_name": "Physcion",           "OB": 45.69, "DL": 0.28, "MW": 284.27},
+    {"mol_name": "Resveratrol",        "OB": 51.60, "DL": 0.21, "MW": 228.25},
+    {"mol_name": "Catechin",           "OB": 54.83, "DL": 0.24, "MW": 290.27}
+  ],
+  "麻黄": [
+    {"mol_name": "Ephedrine",          "OB": 76.93, "DL": 0.08, "MW": 165.23},
+    {"mol_name": "Pseudoephedrine",    "OB": 68.03, "DL": 0.08, "MW": 165.23},
+    {"mol_name": "Methylephedrine",    "OB": 56.12, "DL": 0.10, "MW": 179.26},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
+    {"mol_name": "Kaempferol",         "OB": 41.88, "DL": 0.24, "MW": 286.24}
+  ],
+  "桂枝": [
+    {"mol_name": "Cinnamaldehyde",     "OB": 30.44, "DL": 0.04, "MW": 132.16},
+    {"mol_name": "Cinnamic acid",      "OB": 62.51, "DL": 0.08, "MW": 148.16},
+    {"mol_name": "Coumarin",           "OB": 68.97, "DL": 0.10, "MW": 146.14},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24}
+  ],
+  "附子": [
+    {"mol_name": "Aconitine",          "OB": 30.78, "DL": 0.35, "MW": 645.74},
+    {"mol_name": "Mesaconitine",       "OB": 49.45, "DL": 0.35, "MW": 631.72},
+    {"mol_name": "Hypaconitine",       "OB": 42.58, "DL": 0.35, "MW": 615.72},
+    {"mol_name": "Benzoylaconine",     "OB": 38.93, "DL": 0.34, "MW": 603.69},
+    {"mol_name": "Coryneine",          "OB": 62.30, "DL": 0.59, "MW": 174.20}
+  ],
+  "半夏": [
+    {"mol_name": "Ephedrine",          "OB": 76.93, "DL": 0.08, "MW": 165.23},
+    {"mol_name": "Choline",            "OB": 77.11, "DL": 0.02, "MW": 121.18},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
+    {"mol_name": "Stigmasterol",       "OB": 43.83, "DL": 0.76, "MW": 412.69},
+    {"mol_name": "Adenosine",          "OB": 42.36, "DL": 0.33, "MW": 267.24}
+  ],
+  "金银花": [
+    {"mol_name": "Chlorogenic acid",   "OB": 33.15, "DL": 0.35, "MW": 354.31},
+    {"mol_name": "Luteolin",           "OB": 36.16, "DL": 0.25, "MW": 286.24},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
+    {"mol_name": "Kaempferol",         "OB": 41.88, "DL": 0.24, "MW": 286.24},
+    {"mol_name": "Isochlorogenic acid","OB": 30.17, "DL": 0.35, "MW": 354.31},
+    {"mol_name": "3,5-Dicaffeoylquinic acid","OB": 30.44, "DL": 0.56, "MW": 516.45}
+  ],
+  "连翘": [
+    {"mol_name": "Forsythoside A",     "OB": 30.22, "DL": 0.35, "MW": 624.59},
+    {"mol_name": "Phillyrin",          "OB": 37.54, "DL": 0.82, "MW": 534.54},
+    {"mol_name": "Forsythin",          "OB": 30.52, "DL": 0.60, "MW": 372.42},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
+    {"mol_name": "Rutin",              "OB": 31.90, "DL": 0.80, "MW": 610.52},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+  ],
+  "赤芍": [
+    {"mol_name": "Paeoniflorin",       "OB": 53.87, "DL": 0.78, "MW": 480.47},
+    {"mol_name": "Albiflorin",         "OB": 31.97, "DL": 0.78, "MW": 480.47},
+    {"mol_name": "Oxypaeoniflorin",    "OB": 37.55, "DL": 0.78, "MW": 496.47},
+    {"mol_name": "Benzoic acid",       "OB": 51.98, "DL": 0.06, "MW": 122.12},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
+    {"mol_name": "Kaempferol",         "OB": 41.88, "DL": 0.24, "MW": 286.24}
+  ],
+  "生地黄": [
+    {"mol_name": "Catalpol",           "OB": 36.62, "DL": 0.32, "MW": 362.33},
+    {"mol_name": "Ajugol",             "OB": 38.43, "DL": 0.45, "MW": 376.36},
+    {"mol_name": "Rehmaglutin A",      "OB": 34.21, "DL": 0.42, "MW": 388.38},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24}
+  ],
+  "枸杞子": [
+    {"mol_name": "Zeaxanthin",         "OB": 43.18, "DL": 0.73, "MW": 568.87},
+    {"mol_name": "Betaine",            "OB": 64.59, "DL": 0.08, "MW": 117.15},
+    {"mol_name": "Rutin",              "OB": 31.90, "DL": 0.80, "MW": 610.52},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
+    {"mol_name": "Scopoletin",         "OB": 69.12, "DL": 0.12, "MW": 192.17}
+  ],
+  "菊花": [
+    {"mol_name": "Luteolin",           "OB": 36.16, "DL": 0.25, "MW": 286.24},
+    {"mol_name": "Apigenin",           "OB": 45.65, "DL": 0.21, "MW": 270.24},
+    {"mol_name": "Chlorogenic acid",   "OB": 33.15, "DL": 0.35, "MW": 354.31},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
+    {"mol_name": "Acacetin",           "OB": 34.97, "DL": 0.24, "MW": 284.27},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+  ],
+  "薄荷": [
+    {"mol_name": "Menthol",            "OB": 36.68, "DL": 0.07, "MW": 156.27},
+    {"mol_name": "Menthone",           "OB": 36.97, "DL": 0.06, "MW": 154.25},
+    {"mol_name": "Luteolin",           "OB": 36.16, "DL": 0.25, "MW": 286.24},
+    {"mol_name": "Rosmarinic acid",    "OB": 36.58, "DL": 0.28, "MW": 360.33},
+    {"mol_name": "Diosmin",            "OB": 30.10, "DL": 0.78, "MW": 608.56}
+  ],
+  "赤石脂": [
+    {"mol_name": "Kaolin",             "OB": 31.00, "DL": 0.20, "MW": 258.16},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
+    {"mol_name": "Kaempferol",         "OB": 41.88, "DL": 0.24, "MW": 286.24},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+  ],
+  "粳米": [
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
+    {"mol_name": "Luteolin",           "OB": 36.16, "DL": 0.25, "MW": 286.24},
+    {"mol_name": "Tricin",             "OB": 37.95, "DL": 0.29, "MW": 330.29},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
+    {"mol_name": "Stigmasterol",       "OB": 43.83, "DL": 0.76, "MW": 412.69}
+  ],
+  "鳖甲": [
+    {"mol_name": "Collagen peptide",   "OB": 33.50, "DL": 0.20, "MW": 300.00},
+    {"mol_name": "Keratan",            "OB": 30.10, "DL": 0.19, "MW": 280.00},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+  ],
+  "干姜": [
+    {"mol_name": "6-Gingerol",         "OB": 31.29, "DL": 0.24, "MW": 294.39},
+    {"mol_name": "8-Gingerol",         "OB": 32.15, "DL": 0.28, "MW": 322.45},
+    {"mol_name": "6-Shogaol",          "OB": 49.65, "DL": 0.20, "MW": 276.37},
+    {"mol_name": "Zingerone",          "OB": 50.22, "DL": 0.10, "MW": 194.23},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+  ],
+  "肉桂": [
+    {"mol_name": "Cinnamaldehyde",     "OB": 30.44, "DL": 0.04, "MW": 132.16},
+    {"mol_name": "Cinnamic acid",      "OB": 62.51, "DL": 0.08, "MW": 148.16},
+    {"mol_name": "Coumarin",           "OB": 68.97, "DL": 0.10, "MW": 146.14},
+    {"mol_name": "Eugenol",            "OB": 31.52, "DL": 0.09, "MW": 164.20},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
+    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+  ],
+  "防风": [
+    {"mol_name": "Prim-O-glucosylcimifugin","OB": 32.87,"DL": 0.74, "MW": 540.57},
+    {"mol_name": "Cimifugin",          "OB": 58.20, "DL": 0.38, "MW": 378.38},
+    {"mol_name": "Sec-O-glucosylhamaudol","OB":31.49,"DL": 0.74, "MW": 408.44},
+    {"mol_name": "Deltoin",            "OB": 47.79, "DL": 0.41, "MW": 380.39},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24}
+  ],
+  "白芍": [
+    {"mol_name": "Paeoniflorin",       "OB": 53.87, "DL": 0.78, "MW": 480.47},
+    {"mol_name": "Albiflorin",         "OB": 31.97, "DL": 0.78, "MW": 480.47},
+    {"mol_name": "Paeonol",            "OB": 55.10, "DL": 0.10, "MW": 166.18},
+    {"mol_name": "Oxypaeoniflorin",    "OB": 37.55, "DL": 0.78, "MW": 496.47},
+    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
+    {"mol_name": "Kaempferol",         "OB": 41.88, "DL": 0.24, "MW": 286.24}
+  ]
+}
