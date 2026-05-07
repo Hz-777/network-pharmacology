@@ -200,7 +200,7 @@ def plot_ppi_network(
     top_n: int = 20,
     title: str = "PPI 蛋白互作网络",
 ) -> plt.Figure:
-    pal = _get_pal()
+    pal    = _get_pal()
     C_GRAY = "#566573"
 
     if ppi_df is None or ppi_df.empty:
@@ -231,10 +231,14 @@ def plot_ppi_network(
         ax.axis("off")
         return fig
 
-    if len(G.nodes) <= 60:
-        pos = nx.kamada_kawai_layout(G)
+    # Compact layout: spring with small k keeps nodes close together
+    n_nodes = len(G.nodes)
+    if n_nodes <= 30:
+        pos = nx.kamada_kawai_layout(G, scale=1.0)
     else:
-        pos = nx.spring_layout(G, k=3.0 / np.sqrt(len(G.nodes)), seed=42, iterations=60)
+        pos = nx.spring_layout(G,
+                               k=0.9 / np.sqrt(n_nodes),
+                               seed=42, iterations=120)
 
     hub_set = (set(centrality_df.head(top_n)["Gene"].tolist())
                if centrality_df is not None and not centrality_df.empty else set())
@@ -245,7 +249,7 @@ def plot_ppi_network(
 
     cmap_ppi    = pal["ppi"]
     node_colors = [cmap_ppi(v * 0.85 + 0.05) for v in norm_degree]
-    node_sizes  = [350 + degree.get(n, 1) * 200 for n in node_list]
+    node_sizes  = [300 + degree.get(n, 1) * 160 for n in node_list]
 
     if scr:
         score_map = {}
@@ -259,15 +263,16 @@ def plot_ppi_network(
         edge_w = [1.2] * len(G.edges)
         edge_a = [0.50] * len(G.edges)
 
-    fig, ax = plt.subplots(figsize=(14, 12), facecolor="white")
+    fig, ax = plt.subplots(figsize=(13, 11), facecolor="white")
 
-    edge_color = pal["edge"]
+    # Edges
     for idx, (u, v) in enumerate(G.edges):
         ax.plot([pos[u][0], pos[v][0]], [pos[u][1], pos[v][1]],
-                color=edge_color, linewidth=edge_w[idx],
+                color=pal["edge"], linewidth=edge_w[idx],
                 alpha=edge_a[idx], solid_capstyle="round", zorder=1)
 
-    ax.scatter(
+    # Nodes
+    sc = ax.scatter(
         [pos[n][0] for n in node_list],
         [pos[n][1] for n in node_list],
         s=node_sizes, color=node_colors,
@@ -275,35 +280,40 @@ def plot_ppi_network(
         zorder=3, alpha=0.93,
     )
 
-    # Only label top hub genes
-    labeled = set(sorted(node_list, key=lambda n: degree.get(n, 0), reverse=True)
-                  [:min(top_n, 15)])
-    cx = np.mean([p[0] for p in pos.values()])
-    cy = np.mean([p[1] for p in pos.values()])
+    # Labels: name placed ABOVE the circle using offset in points
+    labeled = set(sorted(node_list,
+                         key=lambda n: degree.get(n, 0), reverse=True)
+                  [:min(top_n, 16)])
     for n in labeled:
         x, y   = pos[n]
+        idx_n  = node_list.index(n)
         is_hub = n in hub_set
-        fs     = 9.0 if is_hub else 7.5
-        fw     = "bold" if is_hub else "normal"
-        dx, dy = x - cx, y - cy
-        norm_v = max(np.sqrt(dx**2 + dy**2), 1e-6)
-        off    = (node_sizes[node_list.index(n)] ** 0.5) * 0.007
-        lx, ly = x + dx / norm_v * off, y + dy / norm_v * off
-        ax.text(lx, ly, n, ha="center", va="center",
-                fontsize=fs, fontweight=fw,
-                color="white" if is_hub else "#1C2833",
-                zorder=5,
-                path_effects=[pe.withStroke(linewidth=2.5, foreground="#1C2833")] if is_hub
-                              else [pe.withStroke(linewidth=1.5, foreground="white")])
+        ns     = node_sizes[idx_n]
+        # offset = circle edge radius in pts + 3 pt gap
+        pt_offset = np.sqrt(ns) / 2.0 + 3
+        ax.annotate(
+            n,
+            xy=(x, y),
+            xytext=(0, pt_offset),
+            textcoords="offset points",
+            ha="center", va="bottom",
+            fontsize=9.0 if is_hub else 7.5,
+            fontweight="bold" if is_hub else "normal",
+            color="#1C2833",
+            zorder=5,
+            annotation_clip=False,
+            arrowprops=None,
+            path_effects=[pe.withStroke(linewidth=2.0, foreground="white")],
+        )
 
+    # Colorbar
     sm = cm.ScalarMappable(cmap=cmap_ppi, norm=Normalize(0, max_deg))
     sm.set_array([])
-    cbar = fig.colorbar(sm, ax=ax, shrink=0.42, pad=0.01, aspect=20)
-    cbar.set_label("节点连接度 (Degree)", fontsize=10, color=C_GRAY)
+    cbar = fig.colorbar(sm, ax=ax, shrink=0.40, pad=0.01, aspect=20)
+    cbar.set_label("连接度 (Degree)", fontsize=10, color=C_GRAY)
     cbar.ax.tick_params(labelsize=9, color=C_GRAY)
     cbar.outline.set_edgecolor("#CCCCCC")
 
-    accent = pal["accent"]
     hub_patch   = mpatches.Patch(color=cmap_ppi(0.9), label=f"核心靶点 Top {top_n}")
     other_patch = mpatches.Patch(color=cmap_ppi(0.2), label="其他靶点")
     ax.legend(handles=[hub_patch, other_patch], loc="upper left",
@@ -312,7 +322,7 @@ def plot_ppi_network(
 
     ax.set_title(title, fontsize=17, fontweight="bold", color="#1C2833", pad=16)
     ax.axis("off")
-    fig.tight_layout()
+    fig.tight_layout(pad=1.5)
     return fig
 
 
@@ -477,6 +487,34 @@ def plot_go_barplot(go_df: pd.DataFrame, category: str = "GO_BP",
 # 5. COMPONENT-TARGET-PATHWAY NETWORK (Plotly interactive)
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _concentric_pos(
+    compounds: list,
+    targets: list,
+    pathways: list,
+) -> dict:
+    """
+    Return {node: (x, y)} for three concentric rings.
+    Inner (r≈0.55): compounds  ·  Middle (r≈1.55): targets  ·  Outer (r≈2.80): pathways
+    Single-compound case: placed at origin.
+    """
+    import math
+    radii = [0.55, 1.55, 2.80]
+    pos   = {}
+    for ring_idx, ring_nodes in enumerate([compounds, targets, pathways]):
+        n = len(ring_nodes)
+        if n == 0:
+            continue
+        r = radii[ring_idx]
+        if n == 1 and ring_idx == 0:
+            pos[ring_nodes[0]] = (0.0, 0.0)
+        else:
+            for i, node in enumerate(ring_nodes):
+                # start from top (−π/2), go clockwise
+                angle = 2 * math.pi * i / n - math.pi / 2
+                pos[node] = (r * math.cos(angle), r * math.sin(angle))
+    return pos
+
+
 def plot_network_plotly(
     compounds: list,
     compound_targets: dict,
@@ -487,7 +525,8 @@ def plot_network_plotly(
     pal = _get_pal()
     net = pal["net"]
 
-    G = nx.Graph()
+    # Build graph
+    G          = nx.Graph()
     node_types = {}
 
     for comp in compounds:
@@ -497,81 +536,147 @@ def plot_network_plotly(
                 G.add_node(t); node_types[t] = "target"
                 G.add_edge(comp, t)
 
-    for path in top_pathways[:12]:
-        short = path[:45]
+    path_nodes = []
+    for path in top_pathways[:14]:
+        short = path[:42]
+        path_nodes.append(short)
         G.add_node(short); node_types[short] = "pathway"
-        for t in intersection_targets[:10]:
+        for t in intersection_targets[:12]:
             if t in G.nodes:
                 G.add_edge(t, short)
 
     if len(G.nodes) == 0:
         return go.Figure()
 
-    try:
-        for n, t in node_types.items():
-            G.nodes[n]["layer"] = {"compound": 0, "target": 1, "pathway": 2}[t]
-        pos = nx.multipartite_layout(G, subset_key="layer", scale=2.5, align="vertical")
-    except Exception:
-        pos = nx.kamada_kawai_layout(G) if len(G.nodes) <= 80 \
-              else nx.spring_layout(G, k=3.5, seed=42)
+    # Concentric ring positions
+    comp_nodes   = [n for n, t in node_types.items() if t == "compound"]
+    target_nodes = [n for n, t in node_types.items() if t == "target"]
+    pw_nodes     = [n for n, t in node_types.items() if t == "pathway"]
+    pos = _concentric_pos(comp_nodes, target_nodes, pw_nodes)
 
-    style = {
-        "compound": dict(color=net["compound"], size=24, symbol="circle"),
-        "target":   dict(color=net["target"],   size=18, symbol="circle"),
-        "pathway":  dict(color=net["pathway"],  size=22, symbol="diamond"),
-    }
-    label_cn = {"compound":"活性成分","target":"交集靶点","pathway":"KEGG通路"}
+    # ── Concentric guide rings (shapes) ──────────────────────────────────────
+    ring_r = [0.55, 1.55, 2.80]
+    shapes = []
+    for r in ring_r:
+        shapes.append(dict(
+            type="circle",
+            x0=-r, y0=-r, x1=r, y1=r,
+            line=dict(color="rgba(180,190,200,0.35)", width=1.2, dash="dot"),
+            fillcolor="rgba(0,0,0,0)",
+            layer="below",
+        ))
 
-    edge_x, edge_y = [], []
+    # ── Ring labels at 3-o'clock position ────────────────────────────────────
+    ring_labels = [
+        (ring_r[0], "活性成分", net["compound"]),
+        (ring_r[1], "交集靶点",  net["target"]),
+        (ring_r[2], "KEGG通路",  net["pathway"]),
+    ]
+    annots = []
+    for r, lbl, clr in ring_labels:
+        annots.append(dict(
+            x=r + 0.12, y=0.0,
+            text=f"<b>{lbl}</b>",
+            showarrow=False,
+            font=dict(size=11, color=clr),
+            xanchor="left", yanchor="middle",
+        ))
+
+    # ── Edges ─────────────────────────────────────────────────────────────────
+    # Color edges by tier: compound-target vs target-pathway
+    def _edge_color(u, v):
+        tu, tv = node_types.get(u,""), node_types.get(v,"")
+        if "compound" in (tu, tv):
+            return f"rgba({_hex_to_rgb(net['compound'])},0.30)"
+        return f"rgba({_hex_to_rgb(net['target'])},0.25)"
+
+    edge_traces = []
     for u, v in G.edges:
-        edge_x += [pos[u][0], pos[v][0], None]
-        edge_y += [pos[u][1], pos[v][1], None]
+        edge_traces.append(go.Scatter(
+            x=[pos[u][0], pos[v][0], None],
+            y=[pos[u][1], pos[v][1], None],
+            mode="lines",
+            line=dict(width=1.0, color=_edge_color(u, v)),
+            hoverinfo="none", showlegend=False,
+        ))
 
-    traces = [go.Scatter(
-        x=edge_x, y=edge_y, mode="lines",
-        line=dict(width=1.0, color="rgba(120,130,145,0.40)"),
-        hoverinfo="none", showlegend=False,
-    )]
+    # ── Nodes ─────────────────────────────────────────────────────────────────
+    style = {
+        "compound": dict(color=net["compound"], base_size=26, symbol="circle"),
+        "target":   dict(color=net["target"],   base_size=20, symbol="circle"),
+        "pathway":  dict(color=net["pathway"],  base_size=22, symbol="diamond"),
+    }
+    label_cn = {"compound":"活性成分", "target":"交集靶点", "pathway":"KEGG通路"}
 
+    node_traces = []
     for ntype, st in style.items():
         nodes = [n for n, t in node_types.items() if t == ntype]
         if not nodes:
             continue
         deg   = [G.degree(n) for n in nodes]
         max_d = max(deg) if deg else 1
-        sizes = [st["size"] + d / max_d * st["size"] * 0.9 for d in deg]
+        sizes = [st["base_size"] + d / max_d * st["base_size"] * 0.7 for d in deg]
         hover = [f"<b>{n}</b><br>类型: {label_cn[ntype]}<br>连接数: {G.degree(n)}"
                  for n in nodes]
-        traces.append(go.Scatter(
+        tpos  = "top center" if ntype != "pathway" else "top center"
+        node_traces.append(go.Scatter(
             x=[pos[n][0] for n in nodes],
             y=[pos[n][1] for n in nodes],
             mode="markers+text",
-            marker=dict(size=sizes, color=st["color"], symbol=st["symbol"],
-                        opacity=0.90, line=dict(width=1.5, color="white")),
-            text=[n[:32] for n in nodes],
-            textposition="top center",
-            textfont=dict(size=9 if ntype == "pathway" else 8, color="#1C2833"),
+            marker=dict(
+                size=sizes, color=st["color"], symbol=st["symbol"],
+                opacity=0.92,
+                line=dict(width=1.8, color="white"),
+            ),
+            text=[n[:30] for n in nodes],
+            textposition=tpos,
+            textfont=dict(
+                size=9 if ntype == "pathway" else 8.5,
+                color="#1C2833",
+            ),
             hovertemplate="%{customdata}<extra></extra>",
             customdata=hover,
             name=label_cn[ntype],
         ))
 
-    fig = go.Figure(data=traces, layout=go.Layout(
-        title=dict(text=f"<b>{title}</b>",
-                   font=dict(size=17, color="#1C2833", family="Arial"),
-                   x=0.5, xanchor="center"),
-        showlegend=True,
-        legend=dict(orientation="v", x=1.01, y=0.98,
-                    bgcolor="rgba(255,255,255,0.9)",
-                    bordercolor="#DDDDDD", borderwidth=1,
-                    font=dict(size=12)),
-        hovermode="closest",
-        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, visible=False),
-        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, visible=False),
-        paper_bgcolor="white", plot_bgcolor="#F8F9FA",
-        height=750, margin=dict(l=20, r=170, t=70, b=20),
-    ))
+    all_traces = edge_traces + node_traces
+
+    fig = go.Figure(
+        data=all_traces,
+        layout=go.Layout(
+            title=dict(
+                text=f"<b>{title}</b>",
+                font=dict(size=17, color="#1C2833", family="Arial"),
+                x=0.5, xanchor="center",
+            ),
+            showlegend=True,
+            legend=dict(
+                orientation="v", x=1.01, y=0.98,
+                bgcolor="rgba(255,255,255,0.92)",
+                bordercolor="#DDDDDD", borderwidth=1,
+                font=dict(size=12),
+            ),
+            shapes=shapes,
+            annotations=annots,
+            hovermode="closest",
+            xaxis=dict(showgrid=False, zeroline=False,
+                       showticklabels=False, visible=False,
+                       scaleanchor="y"),     # keep aspect ratio circular
+            yaxis=dict(showgrid=False, zeroline=False,
+                       showticklabels=False, visible=False),
+            paper_bgcolor="white",
+            plot_bgcolor="white",
+            height=780,
+            margin=dict(l=30, r=180, t=70, b=30),
+        ),
+    )
     return fig
+
+
+def _hex_to_rgb(hex_color: str) -> str:
+    """Convert #RRGGBB to 'R,G,B' string for rgba()."""
+    h = hex_color.lstrip("#")
+    return ",".join(str(int(h[i:i+2], 16)) for i in (0, 2, 4))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
