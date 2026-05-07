@@ -50,7 +50,7 @@ def _demo_compounds(herb: str) -> pd.DataFrame:
         ],
     }
     # For unknown herbs, reuse the known demo compounds so they
-    # carry through PubChem→SwissTarget and match the targets tab.
+    # carry through PubChem→ChEMBL and match the targets tab.
     rows = data.get(herb, [
         {"mol_name": "Berberine",    "OB": 36.86, "DL": 0.78},
         {"mol_name": "Quercetin",    "OB": 46.43, "DL": 0.28},
@@ -204,7 +204,7 @@ with st.sidebar:
             del st.session_state[k]
         st.rerun()
     st.markdown("---")
-    st.caption("数据来源: TCMSP · PubChem · SwissTarget · STRING · Enrichr · DisGeNET")
+    st.caption("数据来源: TCMSP · PubChem · ChEMBL · STRING · Enrichr · Open Targets")
 
 
 # ── Header ────────────────────────────────────────────────────────────────────
@@ -213,7 +213,7 @@ st.markdown("""
 <div class="main-header">
   <h1 style="color:white;margin:0;font-size:1.9rem;">🌿 网络药理学一键分析平台</h1>
   <p style="color:#A8E6CF;margin:0.4rem 0 0;font-size:0.95rem;">
-    TCMSP · PubChem · SwissTargetPrediction · STRING · Enrichr 全流程自动分析
+    TCMSP · PubChem · ChEMBL · STRING · Enrichr 全流程自动分析
   </p>
 </div>
 """, unsafe_allow_html=True)
@@ -296,31 +296,35 @@ if run_btn:
     valid_smiles = smiles_df[smiles_df["SMILES"].notna() & (smiles_df["SMILES"] != "")]
     add_log(f"获得 SMILES: {len(valid_smiles)}/{len(comp_names)} 个化合物", "ok")
 
-    # ── 3. SwissTargetPrediction ──────────────────────────────────────────────
-    step(3, 9, "SwissTargetPrediction 预测靶点（可能需要几分钟）")
+    # ── 3. ChEMBL 靶点查询 ───────────────────────────────────────────────────
+    step(3, 9, "ChEMBL 数据库查询药物靶点")
     from modules.swiss_target import predict_targets
     target_rows, cmap, all_drug_genes = [], {}, set()
 
-    for _, row in valid_smiles.head(8).iterrows():    # limit 8 to avoid timeout
-        nm, sm = row["name"], row["SMILES"]
-        if not sm:
-            continue
+    # Use all compounds with SMILES, plus try by name for those without
+    query_compounds = list(compounds_df[name_col].dropna().unique())[:15]
+    for nm in query_compounds:
+        sm = ""
+        if not valid_smiles.empty and "name" in valid_smiles.columns:
+            matched = valid_smiles[valid_smiles["name"] == nm]
+            sm = matched["SMILES"].iloc[0] if not matched.empty else ""
         try:
-            tdf = predict_targets(sm)
+            tdf = predict_targets(smiles=sm, compound_name=nm)
             if not tdf.empty:
-                gcol = next((c for c in tdf.columns if any(k in c.lower() for k in ["gene","symbol","target"])), tdf.columns[0])
-                genes = [g for g in tdf[gcol].dropna().unique().tolist() if isinstance(g, str) and g]
+                genes = tdf["Gene"].dropna().unique().tolist()
                 cmap[nm] = genes
                 all_drug_genes.update(genes)
                 for g in genes:
                     target_rows.append({"Compound": nm, "Gene": g})
                 add_log(f"  {nm}: {len(genes)} 个靶点", "ok")
+            else:
+                add_log(f"  {nm}: ChEMBL 未收录", "warn")
         except Exception as e:
-            add_log(f"  {nm} 预测失败: {e}", "warn")
-        time.sleep(1.5)
+            add_log(f"  {nm} 查询失败: {e}", "warn")
+        time.sleep(0.5)
 
     if not target_rows:
-        add_log("SwissTarget 返回为空，使用内置靶点数据", "warn")
+        add_log("ChEMBL 返回为空，使用内置靶点数据", "warn")
         drug_targets_df, cmap, all_drug_genes = _demo_drug_targets(herb_names)
         # Sync compounds_df so the compounds tab shows the same names that have targets.
         demo_comp_names = list(DEMO_COMPOUND_TARGETS.keys())
@@ -483,7 +487,9 @@ if st.session_state.compounds_df is not None:
     with tab1:
         st.markdown("### 活性成分列表（ADME 筛选后）")
         df = st.session_state.compounds_df
-        st.dataframe(df, use_container_width=True, height=380)
+        # Hide internal metadata columns from the user
+        display_cols = [c for c in df.columns if c not in ("_source",)]
+        st.dataframe(df[display_cols], use_container_width=True, height=380)
         c1, c2 = st.columns(2)
         import plotly.express as px
         if "OB" in df.columns:
@@ -637,7 +643,7 @@ else:
 |------|------|--------|
 | ① 活性成分提取 | OB≥30%, DL≥0.18 筛选 | TCMSP |
 | ② SMILES 获取 | 化合物标准结构式 | PubChem |
-| ③ 靶点预测 | 基于分子结构预测 | SwissTargetPrediction |
+| ③ 靶点预测 | 基于分子结构预测 | ChEMBL |
 | ④ 疾病靶点 | 疾病相关基因 | DisGeNET + GeneCards |
 | ⑤ 交集靶点 | 韦恩图取交集 | 本地计算 |
 | ⑥ PPI 网络 | 蛋白互作 + Hub 排序 | STRING |

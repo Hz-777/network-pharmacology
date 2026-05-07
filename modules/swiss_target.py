@@ -1,151 +1,121 @@
-"""SwissTargetPrediction API wrapper for drug target prediction."""
+"""
+Drug target prediction via ChEMBL database.
+Replaces the defunct SwissTargetPrediction REST API.
+
+Workflow:
+  compound name/SMILES → ChEMBL ID → bioactivity records → gene symbols
+"""
 
 import requests
 import pandas as pd
 import time
-import json
-from typing import Optional
 
-SWISS_API = "https://www.swisstargetprediction.ch"
+CHEMBL_API = "https://www.ebi.ac.uk/chembl/api/data"
+HEADERS = {"User-Agent": "Mozilla/5.0 (network-pharmacology-app/1.0)"}
 
 
-def predict_targets(smiles: str, organism: str = "Homo sapiens") -> pd.DataFrame:
-    """
-    Submit SMILES to SwissTargetPrediction and retrieve predicted targets.
-    Returns DataFrame with columns: Target, Probability, UniprotID, etc.
-    """
-    # POST to prediction endpoint
-    url = f"{SWISS_API}/predict.php"
-    data = {
-        "smiles": smiles,
-        "organism": organism,
-    }
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Referer": f"{SWISS_API}/",
-    }
-
+def _chembl_id_from_name(name: str) -> "str | None":
+    """Look up ChEMBL ID by compound preferred name."""
     try:
-        session = requests.Session()
-        resp = session.post(url, data=data, headers=headers, timeout=60)
-        if resp.status_code == 200:
-            result_url = _extract_result_url(resp.text, smiles)
-            if result_url:
-                time.sleep(3)
-                return _fetch_result_table(session, result_url, headers)
+        r = requests.get(
+            f"{CHEMBL_API}/molecule/search",
+            params={"q": name, "format": "json", "limit": 1},
+            headers=HEADERS,
+            timeout=15,
+        )
+        mols = r.json().get("molecules", [])
+        return mols[0]["molecule_chembl_id"] if mols else None
     except Exception:
-        pass
-
-    return pd.DataFrame()
+        return None
 
 
-def _extract_result_url(html: str, smiles: str) -> Optional[str]:
-    """Extract result download URL from SwissTargetPrediction response."""
-    from bs4 import BeautifulSoup
-    soup = BeautifulSoup(html, "lxml")
-
-    # Look for download link or result table link
-    for a in soup.find_all("a", href=True):
-        href = a["href"]
-        if "target" in href.lower() or "result" in href.lower() or ".csv" in href.lower():
-            if href.startswith("http"):
-                return href
-            return f"{SWISS_API}/{href.lstrip('/')}"
-
-    # Try to find result ID in the page
-    for script in soup.find_all("script"):
-        if script.string and "resultID" in script.string:
-            import re
-            match = re.search(r'resultID\s*=\s*["\']?(\w+)["\']?', script.string)
-            if match:
-                return f"{SWISS_API}/result.php?resultID={match.group(1)}"
-
-    return None
-
-
-def _fetch_result_table(session: requests.Session, url: str, headers: dict) -> pd.DataFrame:
-    """Fetch and parse the SwissTargetPrediction result table."""
-    from bs4 import BeautifulSoup
-    import re
-
-    # Try CSV download first
-    csv_url = url.replace("result.php", "download.php") if "result.php" in url else url
-    if ".csv" not in csv_url:
-        csv_url = csv_url + ("&" if "?" in csv_url else "?") + "format=csv"
-
+def _chembl_id_from_smiles(smiles: str) -> "str | None":
+    """Look up ChEMBL ID by SMILES (exact structure match)."""
     try:
-        resp = session.get(csv_url, headers=headers, timeout=30)
-        if "text/csv" in resp.headers.get("content-type", "") or resp.text.startswith("Target"):
-            from io import StringIO
-            return pd.read_csv(StringIO(resp.text))
+        r = requests.get(
+            f"{CHEMBL_API}/molecule",
+            params={
+                "molecule_structures__canonical_smiles": smiles,
+                "format": "json",
+                "limit": 1,
+            },
+            headers=HEADERS,
+            timeout=15,
+        )
+        mols = r.json().get("molecules", [])
+        return mols[0]["molecule_chembl_id"] if mols else None
     except Exception:
-        pass
-
-    # Fallback: parse HTML table
-    resp = session.get(url, headers=headers, timeout=30)
-    soup = BeautifulSoup(resp.content, "lxml")
-    tables = soup.find_all("table")
-    for table in tables:
-        headers_row = [th.get_text(strip=True) for th in table.find_all("th")]
-        if any(col in headers_row for col in ["Target", "Probability", "Gene name"]):
-            rows = []
-            for tr in table.find_all("tr")[1:]:
-                tds = [td.get_text(strip=True) for td in tr.find_all("td")]
-                if tds:
-                    rows.append(tds)
-            if rows:
-                return pd.DataFrame(rows, columns=headers_row[:len(rows[0])])
-
-    return pd.DataFrame()
+        return None
 
 
-def predict_targets_batch(
-    compounds: pd.DataFrame,
-    smiles_col: str = "SMILES",
-    name_col: str = "mol_name",
-    min_probability: float = 0.0,
-    progress_callback=None,
-) -> pd.DataFrame:
+def _get_gene_symbols(chembl_id: str, max_targets: int = 50) -> list:
     """
-    Predict targets for multiple compounds.
-    Returns merged DataFrame with compound-target associations.
+    Return human gene symbols for a ChEMBL compound ID.
+    Uses bioactivity records (requires pChEMBL ≥ 5, i.e., affinity ≤ 10 µM).
     """
-    all_targets = []
-    valid = compounds[compounds[smiles_col].notna() & (compounds[smiles_col] != "")]
-    total = len(valid)
+    try:
+        # Step 1: get activities with measured affinity
+        r = requests.get(
+            f"{CHEMBL_API}/activity",
+            params={
+                "molecule_chembl_id": chembl_id,
+                "target_organism": "Homo sapiens",
+                "pchembl_value__isnull": False,
+                "format": "json",
+                "limit": 200,
+            },
+            headers=HEADERS,
+            timeout=20,
+        )
+        acts = r.json().get("activities", [])
+        target_ids = list({a["target_chembl_id"] for a in acts if a.get("target_chembl_id")})
+        if not target_ids:
+            return []
 
-    for i, (_, row) in enumerate(valid.iterrows()):
-        smiles = row[smiles_col]
-        name = row.get(name_col, f"compound_{i}")
+        # Step 2: get gene symbols for those targets
+        r2 = requests.get(
+            f"{CHEMBL_API}/target",
+            params={
+                "target_chembl_id__in": ",".join(target_ids[:max_targets]),
+                "organism": "Homo sapiens",
+                "target_type": "SINGLE PROTEIN",
+                "format": "json",
+                "limit": max_targets,
+            },
+            headers=HEADERS,
+            timeout=20,
+        )
+        genes = []
+        for t in r2.json().get("targets", []):
+            for comp in t.get("target_components", []):
+                for syn in comp.get("target_component_synonyms", []):
+                    if syn.get("syn_type") == "GENE_SYMBOL":
+                        genes.append(syn["component_synonym"])
+                        break
+        return sorted(set(genes))
 
-        if progress_callback:
-            progress_callback(i + 1, total, name)
-
-        targets_df = predict_targets(smiles)
-
-        if not targets_df.empty:
-            # Normalize probability column
-            prob_col = next((c for c in targets_df.columns if "prob" in c.lower()), None)
-            if prob_col:
-                targets_df[prob_col] = pd.to_numeric(targets_df[prob_col], errors="coerce")
-                targets_df = targets_df[targets_df[prob_col] > min_probability]
-
-            targets_df["Compound"] = name
-            all_targets.append(targets_df)
-
-        time.sleep(2)  # Rate limiting
-
-    if all_targets:
-        return pd.concat(all_targets, ignore_index=True)
-    return pd.DataFrame()
-
-
-def get_unique_targets(targets_df: pd.DataFrame) -> list:
-    """Extract unique gene symbols from targets DataFrame."""
-    gene_cols = [c for c in targets_df.columns if any(k in c.lower() for k in ["gene", "symbol", "target"])]
-    if not gene_cols:
+    except Exception:
         return []
 
-    col = gene_cols[0]
-    return sorted(targets_df[col].dropna().unique().tolist())
+
+def predict_targets(smiles: str, compound_name: str = "") -> pd.DataFrame:
+    """
+    Main entry point: given a SMILES (and optionally a name),
+    return a DataFrame with columns [Gene, Source].
+    """
+    chembl_id = None
+
+    # Try name first (faster), then SMILES
+    if compound_name:
+        chembl_id = _chembl_id_from_name(compound_name)
+    if not chembl_id and smiles:
+        chembl_id = _chembl_id_from_smiles(smiles)
+
+    if not chembl_id:
+        return pd.DataFrame()
+
+    genes = _get_gene_symbols(chembl_id)
+    if not genes:
+        return pd.DataFrame()
+
+    return pd.DataFrame({"Gene": genes, "ChEMBL_ID": chembl_id, "Source": "ChEMBL"})
