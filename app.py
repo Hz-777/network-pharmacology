@@ -49,10 +49,12 @@ def _demo_compounds(herb: str) -> pd.DataFrame:
             {"mol_name": "Beta-sitosterol","OB": 36.91,"DL": 0.75},
         ],
     }
+    # For unknown herbs, reuse the known demo compounds so they
+    # carry through PubChem→SwissTarget and match the targets tab.
     rows = data.get(herb, [
-        {"mol_name": f"{herb}_compound1","OB": 35.0,"DL": 0.25},
-        {"mol_name": f"{herb}_compound2","OB": 42.0,"DL": 0.30},
-        {"mol_name": f"{herb}_compound3","OB": 50.0,"DL": 0.35},
+        {"mol_name": "Berberine",    "OB": 36.86, "DL": 0.78},
+        {"mol_name": "Quercetin",    "OB": 46.43, "DL": 0.28},
+        {"mol_name": "Beta-sitosterol","OB": 36.91,"DL": 0.75},
     ])
     df = pd.DataFrame(rows)
     df["Herb"] = herb
@@ -66,14 +68,15 @@ DEMO_TARGET_POOL = [
 ]
 
 DEMO_COMPOUND_TARGETS = {
-    "Berberine":    ["TP53","AKT1","TNF","IL6","MAPK1","PTGS2","NOS2"],
-    "Baicalein":    ["VEGFA","EGFR","STAT3","NFKB1","BCL2","IL1B"],
-    "Palmatine":    ["MDM2","PTEN","MTOR","CDK2","CASP3"],
-    "Wogonin":      ["MYC","JUN","HSP90AA1","PPARG","AR"],
-    "Coptisine":    ["AKT1","PIK3CA","CCND1","STAT3"],
-    "Jatrorrhizine":["TNF","IL6","NFKB1","MAPK1"],
+    "Berberine":      ["TP53","AKT1","TNF","IL6","MAPK1","PTGS2","NOS2"],
+    "Baicalein":      ["VEGFA","EGFR","STAT3","NFKB1","BCL2","IL1B"],
+    "Palmatine":      ["MDM2","PTEN","MTOR","CDK2","CASP3"],
+    "Wogonin":        ["MYC","JUN","HSP90AA1","PPARG","AR"],
+    "Coptisine":      ["AKT1","PIK3CA","CCND1","STAT3"],
+    "Jatrorrhizine":  ["TNF","IL6","NFKB1","MAPK1"],
     "Ginsenoside Rh2":["TP53","BCL2","CASP3","EGFR"],
     "Beta-sitosterol":["ESR1","AR","PPARG","RXRA"],
+    "Quercetin":      ["TP53","AKT1","VEGFA","EGFR","TNF","NFKB1","MTOR","MAPK1"],
 }
 
 
@@ -319,6 +322,16 @@ if run_btn:
     if not target_rows:
         add_log("SwissTarget 返回为空，使用内置靶点数据", "warn")
         drug_targets_df, cmap, all_drug_genes = _demo_drug_targets(herb_names)
+        # Sync compounds_df so the compounds tab shows the same names that have targets.
+        demo_comp_names = list(DEMO_COMPOUND_TARGETS.keys())
+        if compounds_df[name_col].isin(demo_comp_names).sum() == 0:
+            # Replace placeholder compounds with the demo ones
+            sync_rows = []
+            for cn in demo_comp_names:
+                sync_rows.append({"mol_name": cn, "OB": 36.0, "DL": 0.30, "Herb": herb_names[0]})
+            compounds_df = pd.DataFrame(sync_rows)
+            name_col = "mol_name"
+            st.session_state.compounds_df = compounds_df
     else:
         drug_targets_df = pd.DataFrame(target_rows)
 
