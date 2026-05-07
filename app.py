@@ -471,7 +471,7 @@ if st.session_state.compounds_df is not None:
         if ppi_df is not None:
             c1, c2 = st.columns([1.8, 1])
             with c1:
-                pfig = plot_ppi_network(ppi_df, cen_df or pd.DataFrame(), top_n=20)
+                pfig = plot_ppi_network(ppi_df, cen_df if cen_df is not None else pd.DataFrame(), top_n=20)
                 st.image(f"data:image/png;base64,{fig_to_base64(pfig)}", use_column_width=True)
             with c2:
                 st.markdown("#### 核心靶点排名（Hub Score）")
