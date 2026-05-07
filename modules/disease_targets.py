@@ -1,6 +1,8 @@
 """
-Disease target retrieval via Open Targets Platform (GraphQL API).
-Free, no authentication required.
+Disease target retrieval.
+Sources (queried in parallel, results merged):
+  1. Open Targets Platform  — GraphQL API, EFO/MONDO IDs, scored 0–1
+  2. Harmonizome/DisGeNET   — REST API, literature evidence, free/no key
 Supports both English and Chinese disease names.
 """
 
@@ -8,8 +10,10 @@ import re
 import requests
 import pandas as pd
 
-OT_API = "https://api.platform.opentargets.org/api/v4/graphql"
-HEADERS = {"Content-Type": "application/json"}
+OT_API          = "https://api.platform.opentargets.org/api/v4/graphql"
+HARMONIZOME_API = "https://maayanlab.cloud/Harmonizome/api/1.0"
+OT_HEADERS      = {"Content-Type": "application/json"}
+HEADERS         = {"User-Agent": "Mozilla/5.0 (network-pharmacology-app/1.0)"}
 
 # Chinese → English mapping for common diseases in TCM research
 _CN_TO_EN = {
@@ -143,7 +147,7 @@ def _search_disease_id(disease: str) -> object:
         r = requests.post(
             OT_API,
             json={"query": query, "variables": {"term": disease}},
-            headers=HEADERS,
+            headers=OT_HEADERS,
             timeout=15,
         )
         hits = r.json().get("data", {}).get("search", {}).get("hits", [])
@@ -172,7 +176,7 @@ def _get_associated_targets(efo_id: str, size: int = 100) -> pd.DataFrame:
         r = requests.post(
             OT_API,
             json={"query": query, "variables": {"efoId": efo_id, "size": size}},
-            headers=HEADERS,
+            headers=OT_HEADERS,
             timeout=20,
         )
         data = r.json().get("data", {})
@@ -193,32 +197,72 @@ def _get_associated_targets(efo_id: str, size: int = 100) -> pd.DataFrame:
     return pd.DataFrame()
 
 
+def _query_harmonizome(disease: str) -> pd.DataFrame:
+    """
+    Fetch disease-gene associations from Harmonizome (DisGeNET dataset).
+    Returns DataFrame with columns [Gene, Score, Source].
+    Score is fixed at 0.3 (binary literature evidence, no quantitative ranking).
+    """
+    dataset = "DisGeNET+Gene-Disease+Associations"
+    try:
+        encoded = requests.utils.quote(disease, safe="")
+        r = requests.get(
+            f"{HARMONIZOME_API}/gene_set/{encoded}/{dataset}",
+            headers=HEADERS,
+            timeout=20,
+        )
+        if r.status_code != 200:
+            return pd.DataFrame()
+        assocs = r.json().get("associations", [])
+        if not assocs:
+            return pd.DataFrame()
+        rows = [
+            {"Gene": a["gene"]["symbol"], "Score": 0.3, "Source": "Harmonizome"}
+            for a in assocs
+            if (a.get("gene") or {}).get("symbol")
+        ]
+        return pd.DataFrame(rows) if rows else pd.DataFrame()
+    except Exception:
+        return pd.DataFrame()
+
+
 def get_disease_targets(disease: str, min_score: float = 0.0,
                         progress_callback=None) -> pd.DataFrame:
     """
     Retrieve disease-associated gene targets from Open Targets Platform.
     Accepts English or Chinese disease names.
     """
-    # Translate Chinese to English if needed
     en_disease = _to_english(disease)
     if en_disease != disease and progress_callback:
         progress_callback(f"中文疾病名转换: {disease} → {en_disease}")
 
+    # ── Open Targets ──────────────────────────────────────────────────────────
     if progress_callback:
         progress_callback(f"Open Targets: 搜索 [{en_disease}]...")
-
+    ot_df = pd.DataFrame()
     efo_id = _search_disease_id(en_disease)
-    if not efo_id:
+    if efo_id:
         if progress_callback:
-            progress_callback("未找到匹配疾病，使用内置数据")
+            progress_callback(f"Open Targets: 获取靶点（{efo_id}）...")
+        ot_df = _get_associated_targets(efo_id, size=150)
+
+    # ── Harmonizome / DisGeNET ────────────────────────────────────────────────
+    if progress_callback:
+        progress_callback(f"Harmonizome: 搜索 [{en_disease}]...")
+    hz_df = _query_harmonizome(en_disease)
+    if not hz_df.empty and progress_callback:
+        progress_callback(f"Harmonizome: {len(hz_df)} 个靶点")
+
+    # ── Merge: OT takes priority for shared genes ─────────────────────────────
+    if ot_df.empty and hz_df.empty:
         return pd.DataFrame()
 
-    if progress_callback:
-        progress_callback(f"Open Targets: 获取靶点（{efo_id}）...")
-
-    df = _get_associated_targets(efo_id, size=150)
-    if df.empty:
-        return df
+    if not ot_df.empty and not hz_df.empty:
+        ot_genes = set(ot_df["Gene"])
+        hz_only  = hz_df[~hz_df["Gene"].isin(ot_genes)].head(300)
+        df = pd.concat([ot_df, hz_only], ignore_index=True)
+    else:
+        df = ot_df if not ot_df.empty else hz_df
 
     if min_score > 0 and "Score" in df.columns:
         df = df[df["Score"] >= min_score]

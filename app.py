@@ -231,7 +231,7 @@ with st.sidebar:
             del st.session_state[k]
         st.rerun()
     st.markdown("---")
-    st.caption("数据来源: TCMSP · PubChem · ChEMBL · STRING · Enrichr · Open Targets")
+    st.caption("数据来源: TCMSP · PubChem · ChEMBL · STRING · Enrichr · Open Targets · Harmonizome")
 
 
 # ── Header ────────────────────────────────────────────────────────────────────
@@ -673,7 +673,7 @@ else:
 | ① 活性成分提取 | OB≥30%, DL≥0.18 筛选 | TCMSP |
 | ② SMILES 获取 | 化合物标准结构式 | PubChem |
 | ③ 靶点预测 | 基于分子结构预测 | ChEMBL |
-| ④ 疾病靶点 | 疾病相关基因 | Open Targets |
+| ④ 疾病靶点 | 疾病相关基因 | Open Targets + Harmonizome |
 | ⑤ 交集靶点 | 韦恩图取交集 | 本地计算 |
 | ⑥ PPI 网络 | 蛋白互作 + Hub 排序 | STRING |
 | ⑦ GO/KEGG 富集 | 通路注释 | Enrichr |
