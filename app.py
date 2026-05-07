@@ -218,9 +218,17 @@ with st.sidebar:
             help="PNG适合插入PPT；PDF/SVG矢量图适合投稿论文",
         )
         color_theme = st.selectbox(
-            "颜色主题",
-            options=["默认（红蓝绿）", "冷色调（蓝紫）", "暖色调（橙红）", "绿色系", "灰度"],
+            "期刊配色",
+            options=["NPG", "NEJM", "Lancet", "Science", "Cell"],
             index=0,
+            format_func=lambda x: {
+                "NPG":     "🟥 Nature (NPG)  — 红·青·绿·藏蓝",
+                "NEJM":    "🟦 NEJM          — 深红·蓝·橙·绿",
+                "Lancet":  "🟩 Lancet        — 深蓝·红·绿·青",
+                "Science": "🟪 Science (AAAS)— 靛蓝·红·深绿·紫",
+                "Cell":    "🟧 Cell Press    — 珊瑚·蓝·绿·紫",
+            }[x],
+            help="全局切换所有图表（韦恩/PPI/KEGG/GO/网络图）的配色方案",
         )
 
     # Pack into cfg dict for passing to visualization functions
