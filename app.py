@@ -146,13 +146,54 @@ with st.sidebar:
     st.markdown("## 🌿 参数设置")
     herb_input = st.text_area("🌱 中药名称（每行一个）", value="黄连\n黄芩", height=100)
     disease_input = st.text_input("🏥 疾病名称（英文/中文）", value="diabetes")
+
     st.markdown("### ADME 筛选阈值")
     c1, c2 = st.columns(2)
     ob_th = c1.number_input("OB ≥ (%)", 0.0, 100.0, 30.0, 5.0)
     dl_th = c2.number_input("DL ≥", 0.0, 1.0, 0.18, 0.01)
+
     st.markdown("### 高级参数")
     ppi_score = st.slider("PPI 最低置信分数", 0, 1000, 400, 50)
     top_hub   = st.slider("核心靶点数量 Top N", 5, 50, 20, 5)
+
+    st.markdown("---")
+
+    with st.expander("🎨 出图设置", expanded=False):
+        font_scale = st.select_slider(
+            "字体大小",
+            options=[0.7, 0.85, 1.0, 1.2, 1.4, 1.6],
+            value=1.0,
+            format_func=lambda x: {0.7:"小", 0.85:"偏小", 1.0:"中（默认）",
+                                    1.2:"偏大", 1.4:"大", 1.6:"超大"}[x],
+        )
+        fig_dpi = st.select_slider(
+            "图片分辨率 (DPI)",
+            options=[100, 150, 180, 220, 300],
+            value=180,
+            format_func=lambda x: f"{x} dpi" + (" (印刷级)" if x >= 300 else
+                                                  " (推荐)" if x == 180 else ""),
+        )
+        fig_fmt = st.radio(
+            "下载格式",
+            options=["png", "pdf", "svg"],
+            index=0,
+            horizontal=True,
+            help="PNG适合插入PPT；PDF/SVG矢量图适合投稿论文",
+        )
+        color_theme = st.selectbox(
+            "颜色主题",
+            options=["默认（红蓝绿）", "冷色调（蓝紫）", "暖色调（橙红）", "绿色系", "灰度"],
+            index=0,
+        )
+
+    # Pack into cfg dict for passing to visualization functions
+    fig_cfg = {
+        "font_scale":   font_scale,
+        "dpi":          fig_dpi,
+        "fmt":          fig_fmt,
+        "color_theme":  color_theme,
+    }
+
     st.markdown("---")
     run_btn = st.button("🚀 开始一键分析", type="primary", use_container_width=True)
     if st.button("🔄 重置", use_container_width=True):
@@ -356,7 +397,11 @@ if run_btn:
     from modules.report import generate_excel_report
     import matplotlib
     matplotlib.use("Agg")
-    from modules.visualization import plot_venn, plot_ppi_network, plot_kegg_bubbles, plot_go_barplot
+    from modules.visualization import (
+        plot_venn, plot_ppi_network, plot_kegg_bubbles, plot_go_barplot, apply_cfg
+    )
+
+    apply_cfg(fig_cfg)   # apply user font/dpi settings before drawing
 
     mpl_figs = {}
     mpl_figs["venn"] = plot_venn(
@@ -370,6 +415,8 @@ if run_btn:
         gdf = enrichment.get(cat, pd.DataFrame())
         if gdf is not None and not gdf.empty:
             mpl_figs[cat.lower()] = plot_go_barplot(gdf, category=cat)
+
+    st.session_state.fig_cfg = fig_cfg   # save cfg for display section
 
     out_dir = Path("output"); out_dir.mkdir(exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -404,8 +451,15 @@ if st.session_state.compounds_df is not None:
     matplotlib.use("Agg")
     from modules.visualization import (
         plot_venn, plot_ppi_network, plot_kegg_bubbles, plot_go_barplot,
-        plot_network_plotly, fig_to_base64,
+        plot_network_plotly, fig_to_base64, fig_to_bytes, apply_cfg,
     )
+
+    # Retrieve saved cfg (falls back to current sidebar values)
+    _cfg = st.session_state.get("fig_cfg", fig_cfg)
+    apply_cfg(_cfg)
+    _fmt = _cfg.get("fmt", "png")
+    _dpi = _cfg.get("dpi", 180)
+    _mime = {"png": "image/png", "pdf": "application/pdf", "svg": "image/svg+xml"}[_fmt]
 
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📊 活性成分", "🎯 靶点 & 韦恩图", "🕸️ PPI 网络",
@@ -450,12 +504,15 @@ if st.session_state.compounds_df is not None:
             if st.session_state.drug_targets_df is not None and st.session_state.disease_targets_df is not None:
                 dg  = set(st.session_state.drug_targets_df["Gene"].dropna())
                 dis = set(st.session_state.disease_targets_df["Gene"].dropna())
-                herb_input_val = [h.strip() for h in herb_input.splitlines() if h.strip()]
                 vfig = plot_venn(
                     {"药物靶点": dg, f"{disease_input.strip()}靶点": dis},
                     title="韦恩图",
                 )
-                st.image(f"data:image/png;base64,{fig_to_base64(vfig)}", use_column_width=True)
+                st.image(f"data:image/png;base64,{fig_to_base64(vfig, dpi=_dpi)}", use_column_width=True)
+                vfig2 = plot_venn({"药物靶点": dg, f"{disease_input.strip()}靶点": dis}, title="韦恩图")
+                st.download_button(f"⬇ 下载韦恩图 (.{_fmt})",
+                                   fig_to_bytes(vfig2, fmt=_fmt, dpi=_dpi),
+                                   file_name=f"venn.{_fmt}", mime=_mime)
         with c2:
             st.markdown("#### 交集靶点")
             inter = st.session_state.intersection_genes
@@ -472,7 +529,11 @@ if st.session_state.compounds_df is not None:
             c1, c2 = st.columns([1.8, 1])
             with c1:
                 pfig = plot_ppi_network(ppi_df, cen_df if cen_df is not None else pd.DataFrame(), top_n=20)
-                st.image(f"data:image/png;base64,{fig_to_base64(pfig)}", use_column_width=True)
+                st.image(f"data:image/png;base64,{fig_to_base64(pfig, dpi=_dpi)}", use_column_width=True)
+                pfig2 = plot_ppi_network(ppi_df, cen_df if cen_df is not None else pd.DataFrame(), top_n=20)
+                st.download_button(f"⬇ 下载 PPI 网络图 (.{_fmt})",
+                                   fig_to_bytes(pfig2, fmt=_fmt, dpi=_dpi),
+                                   file_name=f"ppi_network.{_fmt}", mime=_mime)
             with c2:
                 st.markdown("#### 核心靶点排名（Hub Score）")
                 if cen_df is not None and not cen_df.empty:
@@ -493,7 +554,15 @@ if st.session_state.compounds_df is not None:
                             efig = plot_kegg_bubbles(edf, title="KEGG 通路富集")
                         else:
                             efig = plot_go_barplot(edf, category=cat)
-                        st.image(f"data:image/png;base64,{fig_to_base64(efig)}", use_column_width=True)
+                        st.image(f"data:image/png;base64,{fig_to_base64(efig, dpi=_dpi)}", use_column_width=True)
+                        # redraw for download (fig_to_base64 closes the figure)
+                        efig2 = plot_kegg_bubbles(edf, title="KEGG 通路富集") if cat == "KEGG" \
+                                else plot_go_barplot(edf, category=cat)
+                        st.download_button(
+                            f"⬇ 下载 {cat} 图 (.{_fmt})",
+                            fig_to_bytes(efig2, fmt=_fmt, dpi=_dpi),
+                            file_name=f"{cat.lower()}.{_fmt}", mime=_mime,
+                        )
                     else:
                         st.info(f"暂无 {cat} 数据（P≤0.05）")
         else:

@@ -1,6 +1,7 @@
 """
 Visualization module — publication-quality figures.
 Styles inspired by Nature/Cell paper conventions.
+All drawing functions accept an optional `cfg` dict for user-customizable settings.
 """
 
 import pandas as pd
@@ -513,10 +514,38 @@ def plot_network_plotly(
 # Utility
 # ─────────────────────────────────────────────────────────────────────────────
 
-def fig_to_base64(fig: plt.Figure) -> str:
+def apply_cfg(cfg: dict):
+    """Apply user font/style config to matplotlib rcParams globally."""
+    if not cfg:
+        return
+    fs = cfg.get("font_scale", 1.0)
+    plt.rcParams.update({
+        "font.size":        10 * fs,
+        "axes.titlesize":   15 * fs,
+        "axes.labelsize":   12 * fs,
+        "xtick.labelsize":  10 * fs,
+        "ytick.labelsize":  10 * fs,
+        "legend.fontsize":  10 * fs,
+        "figure.dpi":       cfg.get("dpi", 150),
+        "savefig.dpi":      cfg.get("dpi", 180),
+    })
+
+
+def fig_to_base64(fig: plt.Figure, fmt: str = "png", dpi: int = 180) -> str:
+    """Convert matplotlib figure to base64 string. fmt: png / svg / pdf"""
     buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=180, bbox_inches="tight",
+    fig.savefig(buf, format=fmt, dpi=dpi, bbox_inches="tight",
                 facecolor="white", edgecolor="none")
     buf.seek(0)
     plt.close(fig)
     return base64.b64encode(buf.read()).decode("utf-8")
+
+
+def fig_to_bytes(fig: plt.Figure, fmt: str = "png", dpi: int = 180) -> bytes:
+    """Return figure as raw bytes for Streamlit download_button."""
+    buf = io.BytesIO()
+    fig.savefig(buf, format=fmt, dpi=dpi, bbox_inches="tight",
+                facecolor="white", edgecolor="none")
+    buf.seek(0)
+    plt.close(fig)
+    return buf.getvalue()
