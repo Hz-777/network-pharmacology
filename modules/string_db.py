@@ -3,7 +3,6 @@
 import requests
 import pandas as pd
 import io
-from typing import Optional
 
 STRING_API = "https://string-db.org/api"
 SPECIES_HUMAN = 9606
@@ -60,27 +59,6 @@ def get_ppi_network(genes: list, min_score: int = 400) -> pd.DataFrame:
         return df
     except Exception as e:
         raise ConnectionError(f"STRING网络获取失败: {e}")
-
-
-def get_network_enrichment(genes: list) -> dict:
-    """Get functional enrichment from STRING."""
-    if not genes:
-        return {}
-
-    genes_str = "%0d".join(genes)
-    url = f"{STRING_API}/json/enrichment"
-    params = {
-        "identifiers": genes_str,
-        "species": SPECIES_HUMAN,
-        "caller_identity": "network_pharmacology_tool",
-    }
-
-    try:
-        resp = requests.post(url, data=params, timeout=60)
-        resp.raise_for_status()
-        return resp.json()
-    except Exception:
-        return {}
 
 
 def calculate_network_centrality(ppi_df: pd.DataFrame) -> pd.DataFrame:

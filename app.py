@@ -61,12 +61,6 @@ def _demo_compounds(herb: str) -> pd.DataFrame:
     return df
 
 
-DEMO_TARGET_POOL = [
-    "TP53","AKT1","TNF","IL6","VEGFA","EGFR","MYC","MAPK1","JUN","CASP3",
-    "BCL2","STAT3","NFKB1","MDM2","PTEN","PIK3CA","CCND1","MTOR","CDK2",
-    "HSP90AA1","IL1B","PTGS2","ESR1","AR","PPARG","RXRA","NOS2","NR3C1",
-]
-
 DEMO_COMPOUND_TARGETS = {
     "Berberine":      ["TP53","AKT1","TNF","IL6","MAPK1","PTGS2","NOS2"],
     "Baicalein":      ["VEGFA","EGFR","STAT3","NFKB1","BCL2","IL1B"],
@@ -120,6 +114,39 @@ def _demo_ppi(genes: list) -> pd.DataFrame:
                              "score": int(rng.integers(400, 999))})
     df = pd.DataFrame(rows).drop_duplicates(subset=["preferredName_A","preferredName_B"])
     return df
+
+
+# ── Cached API wrappers (same inputs → skip network round-trip) ───────────────
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def _cached_herb(herb_name: str, ob_th: float, dl_th: float) -> pd.DataFrame:
+    from modules.tcmsp import search_herb_tcmsp
+    return search_herb_tcmsp(herb_name, ob_th, dl_th)
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def _cached_compound_info(name: str) -> dict:
+    from modules.pubchem import get_compound_info
+    return get_compound_info(name)
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def _cached_predict_targets(smiles: str, compound_name: str) -> pd.DataFrame:
+    from modules.swiss_target import predict_targets
+    return predict_targets(smiles=smiles, compound_name=compound_name)
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def _cached_disease_targets(disease: str) -> pd.DataFrame:
+    from modules.disease_targets import get_disease_targets
+    return get_disease_targets(disease)
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def _cached_ppi(genes: tuple, min_score: int) -> pd.DataFrame:
+    from modules.string_db import get_ppi_network
+    return get_ppi_network(list(genes), min_score=min_score)
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def _cached_enrichr(genes: tuple) -> dict:
+    from modules.enrichment import run_enrichr_analysis
+    return run_enrichr_analysis(list(genes))
 
 
 # ── Session state ─────────────────────────────────────────────────────────────
@@ -259,11 +286,10 @@ if run_btn:
 
     # ── 1. TCMSP ─────────────────────────────────────────────────────────────
     step(1, 9, f"从 TCMSP 获取活性成分（OB≥{ob_th}%, DL≥{dl_th}）")
-    from modules.tcmsp import search_herb_tcmsp
     all_comp = []
     for herb in herb_names:
         try:
-            df = search_herb_tcmsp(herb, ob_th, dl_th)
+            df = _cached_herb(herb, ob_th, dl_th)
             if not df.empty:
                 df["Herb"] = herb
                 all_comp.append(df)
@@ -283,11 +309,10 @@ if run_btn:
 
     # ── 2. PubChem SMILES ─────────────────────────────────────────────────────
     step(2, 9, "从 PubChem 获取 SMILES 结构式")
-    from modules.pubchem import get_compound_info
     smiles_rows = []
     comp_names  = compounds_df[name_col].dropna().unique().tolist()
     for i, nm in enumerate(comp_names[:20]):          # cap at 20 for speed
-        info = get_compound_info(nm)
+        info = _cached_compound_info(nm)
         smiles_rows.append(info)
         if i % 5 == 0:
             add_log(f"  PubChem {i+1}/{min(len(comp_names),20)}: {nm}")
@@ -298,7 +323,6 @@ if run_btn:
 
     # ── 3. ChEMBL 靶点查询 ───────────────────────────────────────────────────
     step(3, 9, "ChEMBL 数据库查询药物靶点")
-    from modules.swiss_target import predict_targets
     target_rows, cmap, all_drug_genes = [], {}, set()
 
     # Use all compounds with SMILES, plus try by name for those without
@@ -309,7 +333,7 @@ if run_btn:
             matched = valid_smiles[valid_smiles["name"] == nm]
             sm = matched["SMILES"].iloc[0] if not matched.empty else ""
         try:
-            tdf = predict_targets(smiles=sm, compound_name=nm)
+            tdf = _cached_predict_targets(sm, nm)
             if not tdf.empty:
                 genes = tdf["Gene"].dropna().unique().tolist()
                 cmap[nm] = genes
@@ -345,8 +369,8 @@ if run_btn:
 
     # ── 4. Disease targets ────────────────────────────────────────────────────
     step(4, 9, f"获取疾病靶点（{disease}）")
-    from modules.disease_targets import get_disease_targets
-    disease_df = get_disease_targets(disease, progress_callback=lambda m: add_log(f"  {m}"))
+    add_log(f"  查询 Open Targets: [{disease}]...")
+    disease_df = _cached_disease_targets(disease)
     if disease_df.empty:
         add_log("在线库无返回，使用内置疾病靶点", "warn")
         disease_df = _demo_disease_targets(disease)
@@ -359,17 +383,22 @@ if run_btn:
     disease_genes_set = set(disease_df["Gene"].dropna().tolist())
     intersection      = sorted(drug_genes_set & disease_genes_set)
     if not intersection:
-        # fallback: use drug targets directly
-        add_log("未找到交集，扩大范围后继续", "warn")
+        add_log(f"药物靶点与疾病靶点无交集（疾病: {disease}），后续分析基于药物靶点", "warn")
+        st.warning(
+            f"⚠️ **未找到药物-疾病交集靶点**\n\n"
+            f"药物靶点（{len(drug_genes_set)} 个）与疾病靶点（{len(disease_genes_set)} 个）没有重叠，"
+            f"可能原因：①疾病名称不准确（当前: `{disease}`）；②ChEMBL 中该化合物靶点数据不足。\n\n"
+            f"后续分析将使用药物靶点继续，**结果仅供参考**。"
+        )
         intersection = sorted(drug_genes_set)[:30]
     st.session_state.intersection_genes = intersection
     add_log(f"交集靶点: {len(intersection)} 个", "ok")
 
     # ── 6. PPI ───────────────────────────────────────────────────────────────
     step(6, 9, f"STRING 数据库构建 PPI 网络（score≥{ppi_score}）")
-    from modules.string_db import get_ppi_network, calculate_network_centrality
+    from modules.string_db import calculate_network_centrality
     try:
-        ppi_df = get_ppi_network(intersection[:50], min_score=ppi_score)
+        ppi_df = _cached_ppi(tuple(intersection[:50]), ppi_score)
         if ppi_df.empty:
             raise ValueError("空网络")
         add_log(f"PPI 互作对: {len(ppi_df)} 条", "ok")
@@ -385,11 +414,11 @@ if run_btn:
     # ── 7. GO/KEGG ───────────────────────────────────────────────────────────
     step(7, 9, "Enrichr GO/KEGG 富集分析")
     from modules.string_db import get_top_hub_genes
-    from modules.enrichment import run_enrichr_analysis
     hub_genes    = get_top_hub_genes(centrality_df, top_n=top_hub)
     enrich_genes = hub_genes or intersection[:30] or list(drug_genes_set)[:30]
 
-    enrichment = run_enrichr_analysis(enrich_genes, progress_callback=lambda m: add_log(f"  {m}"))
+    add_log("  提交基因列表到 Enrichr...")
+    enrichment = _cached_enrichr(tuple(enrich_genes))
     st.session_state.enrichment = enrichment
     kegg_df = enrichment.get("KEGG", pd.DataFrame())
     add_log(f"KEGG 通路: {len(kegg_df) if kegg_df is not None and not kegg_df.empty else 0} 条 (P≤0.05)", "ok")
@@ -644,7 +673,7 @@ else:
 | ① 活性成分提取 | OB≥30%, DL≥0.18 筛选 | TCMSP |
 | ② SMILES 获取 | 化合物标准结构式 | PubChem |
 | ③ 靶点预测 | 基于分子结构预测 | ChEMBL |
-| ④ 疾病靶点 | 疾病相关基因 | DisGeNET + GeneCards |
+| ④ 疾病靶点 | 疾病相关基因 | Open Targets |
 | ⑤ 交集靶点 | 韦恩图取交集 | 本地计算 |
 | ⑥ PPI 网络 | 蛋白互作 + Hub 排序 | STRING |
 | ⑦ GO/KEGG 富集 | 通路注释 | Enrichr |
