@@ -1,248 +1,3192 @@
 {
   "黄连": [
-    {"mol_name": "Berberine",      "OB": 36.86, "DL": 0.78, "MW": 336.37},
-    {"mol_name": "Coptisine",      "OB": 30.67, "DL": 0.86, "MW": 320.34},
-    {"mol_name": "Palmatine",      "OB": 64.60, "DL": 0.65, "MW": 352.40},
-    {"mol_name": "Jatrorrhizine",  "OB": 47.14, "DL": 0.77, "MW": 338.40},
-    {"mol_name": "Epiberberine",   "OB": 43.09, "DL": 0.78, "MW": 336.37},
-    {"mol_name": "Worenine",       "OB": 45.24, "DL": 0.79, "MW": 348.39},
-    {"mol_name": "Columbamine",    "OB": 54.12, "DL": 0.65, "MW": 338.40}
+    {
+      "mol_name": "Berberine",
+      "OB": 36.86,
+      "DL": 0.78,
+      "MW": 336.37
+    },
+    {
+      "mol_name": "Coptisine",
+      "OB": 30.67,
+      "DL": 0.86,
+      "MW": 320.34
+    },
+    {
+      "mol_name": "Palmatine",
+      "OB": 64.6,
+      "DL": 0.65,
+      "MW": 352.4
+    },
+    {
+      "mol_name": "Jatrorrhizine",
+      "OB": 47.14,
+      "DL": 0.77,
+      "MW": 338.4
+    },
+    {
+      "mol_name": "Epiberberine",
+      "OB": 43.09,
+      "DL": 0.78,
+      "MW": 336.37
+    },
+    {
+      "mol_name": "Worenine",
+      "OB": 45.24,
+      "DL": 0.79,
+      "MW": 348.39
+    },
+    {
+      "mol_name": "Columbamine",
+      "OB": 54.12,
+      "DL": 0.65,
+      "MW": 338.4
+    }
   ],
   "黄芩": [
-    {"mol_name": "Baicalein",         "OB": 33.52, "DL": 0.21, "MW": 270.24},
-    {"mol_name": "Wogonin",           "OB": 30.68, "DL": 0.23, "MW": 284.27},
-    {"mol_name": "Baicalin",          "OB": 40.12, "DL": 0.75, "MW": 446.37},
-    {"mol_name": "Scutellarein",      "OB": 30.20, "DL": 0.20, "MW": 286.24},
-    {"mol_name": "Skullcapflavone II","OB": 44.42, "DL": 0.44, "MW": 372.33},
-    {"mol_name": "Oroxylin A",        "OB": 37.84, "DL": 0.22, "MW": 284.27},
-    {"mol_name": "Norwogonin",        "OB": 39.40, "DL": 0.21, "MW": 270.24}
+    {
+      "mol_name": "Baicalein",
+      "OB": 33.52,
+      "DL": 0.21,
+      "MW": 270.24
+    },
+    {
+      "mol_name": "Wogonin",
+      "OB": 30.68,
+      "DL": 0.23,
+      "MW": 284.27
+    },
+    {
+      "mol_name": "Baicalin",
+      "OB": 40.12,
+      "DL": 0.75,
+      "MW": 446.37
+    },
+    {
+      "mol_name": "Scutellarein",
+      "OB": 30.2,
+      "DL": 0.2,
+      "MW": 286.24
+    },
+    {
+      "mol_name": "Skullcapflavone II",
+      "OB": 44.42,
+      "DL": 0.44,
+      "MW": 372.33
+    },
+    {
+      "mol_name": "Oroxylin A",
+      "OB": 37.84,
+      "DL": 0.22,
+      "MW": 284.27
+    },
+    {
+      "mol_name": "Norwogonin",
+      "OB": 39.4,
+      "DL": 0.21,
+      "MW": 270.24
+    }
   ],
   "甘草": [
-    {"mol_name": "Liquiritigenin",    "OB": 32.33, "DL": 0.18, "MW": 256.26},
-    {"mol_name": "Isoliquiritigenin", "OB": 44.90, "DL": 0.15, "MW": 256.26},
-    {"mol_name": "Glabrol",           "OB": 46.27, "DL": 0.44, "MW": 354.45},
-    {"mol_name": "Licochalcone A",    "OB": 40.79, "DL": 0.21, "MW": 338.40},
-    {"mol_name": "Licochalcone B",    "OB": 76.76, "DL": 0.19, "MW": 354.40},
-    {"mol_name": "Glycyrrhizin",      "OB": 31.71, "DL": 0.78, "MW": 822.93},
-    {"mol_name": "Glabridin",         "OB": 53.25, "DL": 0.46, "MW": 324.37},
-    {"mol_name": "Formononetin",      "OB": 69.67, "DL": 0.21, "MW": 268.27},
-    {"mol_name": "Naringenin",        "OB": 59.29, "DL": 0.21, "MW": 272.27},
-    {"mol_name": "Quercetin",         "OB": 46.43, "DL": 0.28, "MW": 302.24}
+    {
+      "mol_name": "Liquiritigenin",
+      "OB": 32.33,
+      "DL": 0.18,
+      "MW": 256.26
+    },
+    {
+      "mol_name": "Isoliquiritigenin",
+      "OB": 44.9,
+      "DL": 0.15,
+      "MW": 256.26
+    },
+    {
+      "mol_name": "Glabrol",
+      "OB": 46.27,
+      "DL": 0.44,
+      "MW": 354.45
+    },
+    {
+      "mol_name": "Licochalcone A",
+      "OB": 40.79,
+      "DL": 0.21,
+      "MW": 338.4
+    },
+    {
+      "mol_name": "Licochalcone B",
+      "OB": 76.76,
+      "DL": 0.19,
+      "MW": 354.4
+    },
+    {
+      "mol_name": "Glycyrrhizin",
+      "OB": 31.71,
+      "DL": 0.78,
+      "MW": 822.93
+    },
+    {
+      "mol_name": "Glabridin",
+      "OB": 53.25,
+      "DL": 0.46,
+      "MW": 324.37
+    },
+    {
+      "mol_name": "Formononetin",
+      "OB": 69.67,
+      "DL": 0.21,
+      "MW": 268.27
+    },
+    {
+      "mol_name": "Naringenin",
+      "OB": 59.29,
+      "DL": 0.21,
+      "MW": 272.27
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    }
   ],
   "人参": [
-    {"mol_name": "Ginsenoside Rh2",    "OB": 36.32, "DL": 0.56, "MW": 622.86},
-    {"mol_name": "Ginsenoside Rg1",    "OB": 18.43, "DL": 0.56, "MW": 800.97},
-    {"mol_name": "Panaxadiol",         "OB": 33.08, "DL": 0.78, "MW": 460.73},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
-    {"mol_name": "Stigmasterol",       "OB": 43.83, "DL": 0.76, "MW": 412.69},
-    {"mol_name": "Kaempferol",         "OB": 41.88, "DL": 0.24, "MW": 286.24},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24}
+    {
+      "mol_name": "Ginsenoside Rh2",
+      "OB": 36.32,
+      "DL": 0.56,
+      "MW": 622.86
+    },
+    {
+      "mol_name": "Ginsenoside Rg1",
+      "OB": 18.43,
+      "DL": 0.56,
+      "MW": 800.97
+    },
+    {
+      "mol_name": "Panaxadiol",
+      "OB": 33.08,
+      "DL": 0.78,
+      "MW": 460.73
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    },
+    {
+      "mol_name": "Stigmasterol",
+      "OB": 43.83,
+      "DL": 0.76,
+      "MW": 412.69
+    },
+    {
+      "mol_name": "Kaempferol",
+      "OB": 41.88,
+      "DL": 0.24,
+      "MW": 286.24
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    }
   ],
   "黄芪": [
-    {"mol_name": "Formononetin",       "OB": 69.67, "DL": 0.21, "MW": 268.27},
-    {"mol_name": "Calycosin",          "OB": 47.75, "DL": 0.24, "MW": 284.27},
-    {"mol_name": "Astragaloside IV",   "OB": 23.54, "DL": 0.78, "MW": 868.06},
-    {"mol_name": "Cycloastragenol",    "OB": 36.74, "DL": 0.78, "MW": 490.72},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
-    {"mol_name": "Isorhamnetin",       "OB": 49.60, "DL": 0.31, "MW": 316.27},
-    {"mol_name": "Kaempferol",         "OB": 41.88, "DL": 0.24, "MW": 286.24},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+    {
+      "mol_name": "Formononetin",
+      "OB": 69.67,
+      "DL": 0.21,
+      "MW": 268.27
+    },
+    {
+      "mol_name": "Calycosin",
+      "OB": 47.75,
+      "DL": 0.24,
+      "MW": 284.27
+    },
+    {
+      "mol_name": "Astragaloside IV",
+      "OB": 23.54,
+      "DL": 0.78,
+      "MW": 868.06
+    },
+    {
+      "mol_name": "Cycloastragenol",
+      "OB": 36.74,
+      "DL": 0.78,
+      "MW": 490.72
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    },
+    {
+      "mol_name": "Isorhamnetin",
+      "OB": 49.6,
+      "DL": 0.31,
+      "MW": 316.27
+    },
+    {
+      "mol_name": "Kaempferol",
+      "OB": 41.88,
+      "DL": 0.24,
+      "MW": 286.24
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    }
   ],
   "丹参": [
-    {"mol_name": "Tanshinone IIA",     "OB": 49.89, "DL": 0.40, "MW": 294.35},
-    {"mol_name": "Tanshinone I",       "OB": 38.88, "DL": 0.30, "MW": 276.34},
-    {"mol_name": "Cryptotanshinone",   "OB": 52.34, "DL": 0.67, "MW": 296.36},
-    {"mol_name": "Dihydrotanshinone",  "OB": 37.14, "DL": 0.29, "MW": 278.35},
-    {"mol_name": "Salvianolic acid B", "OB": 32.91, "DL": 0.78, "MW": 718.61},
-    {"mol_name": "Rosmarinic acid",    "OB": 36.58, "DL": 0.28, "MW": 360.33},
-    {"mol_name": "Danshensu",          "OB": 66.73, "DL": 0.04, "MW": 198.19},
-    {"mol_name": "Miltirone",          "OB": 36.94, "DL": 0.25, "MW": 262.35}
+    {
+      "mol_name": "Tanshinone IIA",
+      "OB": 49.89,
+      "DL": 0.4,
+      "MW": 294.35
+    },
+    {
+      "mol_name": "Tanshinone I",
+      "OB": 38.88,
+      "DL": 0.3,
+      "MW": 276.34
+    },
+    {
+      "mol_name": "Cryptotanshinone",
+      "OB": 52.34,
+      "DL": 0.67,
+      "MW": 296.36
+    },
+    {
+      "mol_name": "Dihydrotanshinone",
+      "OB": 37.14,
+      "DL": 0.29,
+      "MW": 278.35
+    },
+    {
+      "mol_name": "Salvianolic acid B",
+      "OB": 32.91,
+      "DL": 0.78,
+      "MW": 718.61
+    },
+    {
+      "mol_name": "Rosmarinic acid",
+      "OB": 36.58,
+      "DL": 0.28,
+      "MW": 360.33
+    },
+    {
+      "mol_name": "Danshensu",
+      "OB": 66.73,
+      "DL": 0.04,
+      "MW": 198.19
+    },
+    {
+      "mol_name": "Miltirone",
+      "OB": 36.94,
+      "DL": 0.25,
+      "MW": 262.35
+    }
   ],
   "当归": [
-    {"mol_name": "Z-Ligustilide",      "OB": 76.97, "DL": 0.20, "MW": 190.24},
-    {"mol_name": "Ferulic acid",       "OB": 30.24, "DL": 0.04, "MW": 194.19},
-    {"mol_name": "Butylidenephthalide","OB": 43.29, "DL": 0.16, "MW": 188.22},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
-    {"mol_name": "Senkyunolide A",     "OB": 53.09, "DL": 0.14, "MW": 192.21},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24}
+    {
+      "mol_name": "Z-Ligustilide",
+      "OB": 76.97,
+      "DL": 0.2,
+      "MW": 190.24
+    },
+    {
+      "mol_name": "Ferulic acid",
+      "OB": 30.24,
+      "DL": 0.04,
+      "MW": 194.19
+    },
+    {
+      "mol_name": "Butylidenephthalide",
+      "OB": 43.29,
+      "DL": 0.16,
+      "MW": 188.22
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    },
+    {
+      "mol_name": "Senkyunolide A",
+      "OB": 53.09,
+      "DL": 0.14,
+      "MW": 192.21
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    }
   ],
   "川芎": [
-    {"mol_name": "Z-Ligustilide",      "OB": 76.97, "DL": 0.20, "MW": 190.24},
-    {"mol_name": "Ferulic acid",       "OB": 30.24, "DL": 0.04, "MW": 194.19},
-    {"mol_name": "Cnidilide",          "OB": 43.79, "DL": 0.16, "MW": 192.21},
-    {"mol_name": "Senkyunolide A",     "OB": 53.09, "DL": 0.14, "MW": 192.21},
-    {"mol_name": "Tetramethylpyrazine","OB": 40.82, "DL": 0.08, "MW": 136.19},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+    {
+      "mol_name": "Z-Ligustilide",
+      "OB": 76.97,
+      "DL": 0.2,
+      "MW": 190.24
+    },
+    {
+      "mol_name": "Ferulic acid",
+      "OB": 30.24,
+      "DL": 0.04,
+      "MW": 194.19
+    },
+    {
+      "mol_name": "Cnidilide",
+      "OB": 43.79,
+      "DL": 0.16,
+      "MW": 192.21
+    },
+    {
+      "mol_name": "Senkyunolide A",
+      "OB": 53.09,
+      "DL": 0.14,
+      "MW": 192.21
+    },
+    {
+      "mol_name": "Tetramethylpyrazine",
+      "OB": 40.82,
+      "DL": 0.08,
+      "MW": 136.19
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    }
   ],
   "柴胡": [
-    {"mol_name": "Saikosaponin A",     "OB": 33.25, "DL": 0.78, "MW": 780.97},
-    {"mol_name": "Saikosaponin D",     "OB": 35.92, "DL": 0.78, "MW": 780.97},
-    {"mol_name": "Rutin",              "OB": 31.90, "DL": 0.80, "MW": 610.52},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
-    {"mol_name": "Kaempferol",         "OB": 41.88, "DL": 0.24, "MW": 286.24},
-    {"mol_name": "Isorhamnetin",       "OB": 49.60, "DL": 0.31, "MW": 316.27},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+    {
+      "mol_name": "Saikosaponin A",
+      "OB": 33.25,
+      "DL": 0.78,
+      "MW": 780.97
+    },
+    {
+      "mol_name": "Saikosaponin D",
+      "OB": 35.92,
+      "DL": 0.78,
+      "MW": 780.97
+    },
+    {
+      "mol_name": "Rutin",
+      "OB": 31.9,
+      "DL": 0.8,
+      "MW": 610.52
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    },
+    {
+      "mol_name": "Kaempferol",
+      "OB": 41.88,
+      "DL": 0.24,
+      "MW": 286.24
+    },
+    {
+      "mol_name": "Isorhamnetin",
+      "OB": 49.6,
+      "DL": 0.31,
+      "MW": 316.27
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    }
   ],
   "茯苓": [
-    {"mol_name": "Pachymic acid",      "OB": 33.64, "DL": 0.78, "MW": 528.75},
-    {"mol_name": "Trametenolic acid",  "OB": 38.72, "DL": 0.78, "MW": 512.75},
-    {"mol_name": "Dehydrotumulosic acid","OB":30.97,"DL": 0.78, "MW": 526.73},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
-    {"mol_name": "Ergosterol",         "OB": 43.51, "DL": 0.72, "MW": 396.66}
+    {
+      "mol_name": "Pachymic acid",
+      "OB": 33.64,
+      "DL": 0.78,
+      "MW": 528.75
+    },
+    {
+      "mol_name": "Trametenolic acid",
+      "OB": 38.72,
+      "DL": 0.78,
+      "MW": 512.75
+    },
+    {
+      "mol_name": "Dehydrotumulosic acid",
+      "OB": 30.97,
+      "DL": 0.78,
+      "MW": 526.73
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    },
+    {
+      "mol_name": "Ergosterol",
+      "OB": 43.51,
+      "DL": 0.72,
+      "MW": 396.66
+    }
   ],
   "白术": [
-    {"mol_name": "Atractylenolide I",  "OB": 39.37, "DL": 0.19, "MW": 232.32},
-    {"mol_name": "Atractylenolide II", "OB": 35.31, "DL": 0.19, "MW": 234.34},
-    {"mol_name": "Atractylenolide III","OB": 41.53, "DL": 0.19, "MW": 250.33},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
-    {"mol_name": "Stigmasterol",       "OB": 43.83, "DL": 0.76, "MW": 412.69}
+    {
+      "mol_name": "Atractylenolide I",
+      "OB": 39.37,
+      "DL": 0.19,
+      "MW": 232.32
+    },
+    {
+      "mol_name": "Atractylenolide II",
+      "OB": 35.31,
+      "DL": 0.19,
+      "MW": 234.34
+    },
+    {
+      "mol_name": "Atractylenolide III",
+      "OB": 41.53,
+      "DL": 0.19,
+      "MW": 250.33
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    },
+    {
+      "mol_name": "Stigmasterol",
+      "OB": 43.83,
+      "DL": 0.76,
+      "MW": 412.69
+    }
   ],
   "陈皮": [
-    {"mol_name": "Hesperidin",         "OB": 30.07, "DL": 0.69, "MW": 610.57},
-    {"mol_name": "Nobiletin",          "OB": 50.48, "DL": 0.48, "MW": 402.38},
-    {"mol_name": "Tangeretin",         "OB": 45.05, "DL": 0.39, "MW": 372.37},
-    {"mol_name": "Naringenin",         "OB": 59.29, "DL": 0.21, "MW": 272.27},
-    {"mol_name": "Sinensetin",         "OB": 69.74, "DL": 0.41, "MW": 402.38},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+    {
+      "mol_name": "Hesperidin",
+      "OB": 30.07,
+      "DL": 0.69,
+      "MW": 610.57
+    },
+    {
+      "mol_name": "Nobiletin",
+      "OB": 50.48,
+      "DL": 0.48,
+      "MW": 402.38
+    },
+    {
+      "mol_name": "Tangeretin",
+      "OB": 45.05,
+      "DL": 0.39,
+      "MW": 372.37
+    },
+    {
+      "mol_name": "Naringenin",
+      "OB": 59.29,
+      "DL": 0.21,
+      "MW": 272.27
+    },
+    {
+      "mol_name": "Sinensetin",
+      "OB": 69.74,
+      "DL": 0.41,
+      "MW": 402.38
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    }
   ],
   "大黄": [
-    {"mol_name": "Emodin",             "OB": 31.57, "DL": 0.24, "MW": 270.24},
-    {"mol_name": "Aloe-emodin",        "OB": 43.56, "DL": 0.24, "MW": 270.24},
-    {"mol_name": "Rhein",              "OB": 47.07, "DL": 0.28, "MW": 284.22},
-    {"mol_name": "Chrysophanol",       "OB": 36.91, "DL": 0.24, "MW": 254.24},
-    {"mol_name": "Physcion",           "OB": 45.69, "DL": 0.28, "MW": 284.27},
-    {"mol_name": "Resveratrol",        "OB": 51.60, "DL": 0.21, "MW": 228.25},
-    {"mol_name": "Catechin",           "OB": 54.83, "DL": 0.24, "MW": 290.27}
+    {
+      "mol_name": "Emodin",
+      "OB": 31.57,
+      "DL": 0.24,
+      "MW": 270.24
+    },
+    {
+      "mol_name": "Aloe-emodin",
+      "OB": 43.56,
+      "DL": 0.24,
+      "MW": 270.24
+    },
+    {
+      "mol_name": "Rhein",
+      "OB": 47.07,
+      "DL": 0.28,
+      "MW": 284.22
+    },
+    {
+      "mol_name": "Chrysophanol",
+      "OB": 36.91,
+      "DL": 0.24,
+      "MW": 254.24
+    },
+    {
+      "mol_name": "Physcion",
+      "OB": 45.69,
+      "DL": 0.28,
+      "MW": 284.27
+    },
+    {
+      "mol_name": "Resveratrol",
+      "OB": 51.6,
+      "DL": 0.21,
+      "MW": 228.25
+    },
+    {
+      "mol_name": "Catechin",
+      "OB": 54.83,
+      "DL": 0.24,
+      "MW": 290.27
+    }
   ],
   "麻黄": [
-    {"mol_name": "Ephedrine",          "OB": 76.93, "DL": 0.08, "MW": 165.23},
-    {"mol_name": "Pseudoephedrine",    "OB": 68.03, "DL": 0.08, "MW": 165.23},
-    {"mol_name": "Methylephedrine",    "OB": 56.12, "DL": 0.10, "MW": 179.26},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
-    {"mol_name": "Kaempferol",         "OB": 41.88, "DL": 0.24, "MW": 286.24}
+    {
+      "mol_name": "Ephedrine",
+      "OB": 76.93,
+      "DL": 0.08,
+      "MW": 165.23
+    },
+    {
+      "mol_name": "Pseudoephedrine",
+      "OB": 68.03,
+      "DL": 0.08,
+      "MW": 165.23
+    },
+    {
+      "mol_name": "Methylephedrine",
+      "OB": 56.12,
+      "DL": 0.1,
+      "MW": 179.26
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    },
+    {
+      "mol_name": "Kaempferol",
+      "OB": 41.88,
+      "DL": 0.24,
+      "MW": 286.24
+    }
   ],
   "桂枝": [
-    {"mol_name": "Cinnamaldehyde",     "OB": 30.44, "DL": 0.04, "MW": 132.16},
-    {"mol_name": "Cinnamic acid",      "OB": 62.51, "DL": 0.08, "MW": 148.16},
-    {"mol_name": "Coumarin",           "OB": 68.97, "DL": 0.10, "MW": 146.14},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24}
+    {
+      "mol_name": "Cinnamaldehyde",
+      "OB": 30.44,
+      "DL": 0.04,
+      "MW": 132.16
+    },
+    {
+      "mol_name": "Cinnamic acid",
+      "OB": 62.51,
+      "DL": 0.08,
+      "MW": 148.16
+    },
+    {
+      "mol_name": "Coumarin",
+      "OB": 68.97,
+      "DL": 0.1,
+      "MW": 146.14
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    }
   ],
   "附子": [
-    {"mol_name": "Aconitine",          "OB": 30.78, "DL": 0.35, "MW": 645.74},
-    {"mol_name": "Mesaconitine",       "OB": 49.45, "DL": 0.35, "MW": 631.72},
-    {"mol_name": "Hypaconitine",       "OB": 42.58, "DL": 0.35, "MW": 615.72},
-    {"mol_name": "Benzoylaconine",     "OB": 38.93, "DL": 0.34, "MW": 603.69},
-    {"mol_name": "Coryneine",          "OB": 62.30, "DL": 0.59, "MW": 174.20}
+    {
+      "mol_name": "Aconitine",
+      "OB": 30.78,
+      "DL": 0.35,
+      "MW": 645.74
+    },
+    {
+      "mol_name": "Mesaconitine",
+      "OB": 49.45,
+      "DL": 0.35,
+      "MW": 631.72
+    },
+    {
+      "mol_name": "Hypaconitine",
+      "OB": 42.58,
+      "DL": 0.35,
+      "MW": 615.72
+    },
+    {
+      "mol_name": "Benzoylaconine",
+      "OB": 38.93,
+      "DL": 0.34,
+      "MW": 603.69
+    },
+    {
+      "mol_name": "Coryneine",
+      "OB": 62.3,
+      "DL": 0.59,
+      "MW": 174.2
+    }
   ],
   "半夏": [
-    {"mol_name": "Ephedrine",          "OB": 76.93, "DL": 0.08, "MW": 165.23},
-    {"mol_name": "Choline",            "OB": 77.11, "DL": 0.02, "MW": 121.18},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
-    {"mol_name": "Stigmasterol",       "OB": 43.83, "DL": 0.76, "MW": 412.69},
-    {"mol_name": "Adenosine",          "OB": 42.36, "DL": 0.33, "MW": 267.24}
+    {
+      "mol_name": "Ephedrine",
+      "OB": 76.93,
+      "DL": 0.08,
+      "MW": 165.23
+    },
+    {
+      "mol_name": "Choline",
+      "OB": 77.11,
+      "DL": 0.02,
+      "MW": 121.18
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    },
+    {
+      "mol_name": "Stigmasterol",
+      "OB": 43.83,
+      "DL": 0.76,
+      "MW": 412.69
+    },
+    {
+      "mol_name": "Adenosine",
+      "OB": 42.36,
+      "DL": 0.33,
+      "MW": 267.24
+    }
   ],
   "金银花": [
-    {"mol_name": "Chlorogenic acid",   "OB": 33.15, "DL": 0.35, "MW": 354.31},
-    {"mol_name": "Luteolin",           "OB": 36.16, "DL": 0.25, "MW": 286.24},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
-    {"mol_name": "Kaempferol",         "OB": 41.88, "DL": 0.24, "MW": 286.24},
-    {"mol_name": "Isochlorogenic acid","OB": 30.17, "DL": 0.35, "MW": 354.31},
-    {"mol_name": "3,5-Dicaffeoylquinic acid","OB": 30.44, "DL": 0.56, "MW": 516.45}
+    {
+      "mol_name": "Chlorogenic acid",
+      "OB": 33.15,
+      "DL": 0.35,
+      "MW": 354.31
+    },
+    {
+      "mol_name": "Luteolin",
+      "OB": 36.16,
+      "DL": 0.25,
+      "MW": 286.24
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    },
+    {
+      "mol_name": "Kaempferol",
+      "OB": 41.88,
+      "DL": 0.24,
+      "MW": 286.24
+    },
+    {
+      "mol_name": "Isochlorogenic acid",
+      "OB": 30.17,
+      "DL": 0.35,
+      "MW": 354.31
+    },
+    {
+      "mol_name": "3,5-Dicaffeoylquinic acid",
+      "OB": 30.44,
+      "DL": 0.56,
+      "MW": 516.45
+    }
   ],
   "连翘": [
-    {"mol_name": "Forsythoside A",     "OB": 30.22, "DL": 0.35, "MW": 624.59},
-    {"mol_name": "Phillyrin",          "OB": 37.54, "DL": 0.82, "MW": 534.54},
-    {"mol_name": "Forsythin",          "OB": 30.52, "DL": 0.60, "MW": 372.42},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
-    {"mol_name": "Rutin",              "OB": 31.90, "DL": 0.80, "MW": 610.52},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+    {
+      "mol_name": "Forsythoside A",
+      "OB": 30.22,
+      "DL": 0.35,
+      "MW": 624.59
+    },
+    {
+      "mol_name": "Phillyrin",
+      "OB": 37.54,
+      "DL": 0.82,
+      "MW": 534.54
+    },
+    {
+      "mol_name": "Forsythin",
+      "OB": 30.52,
+      "DL": 0.6,
+      "MW": 372.42
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    },
+    {
+      "mol_name": "Rutin",
+      "OB": 31.9,
+      "DL": 0.8,
+      "MW": 610.52
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    }
   ],
   "赤芍": [
-    {"mol_name": "Paeoniflorin",       "OB": 53.87, "DL": 0.78, "MW": 480.47},
-    {"mol_name": "Albiflorin",         "OB": 31.97, "DL": 0.78, "MW": 480.47},
-    {"mol_name": "Oxypaeoniflorin",    "OB": 37.55, "DL": 0.78, "MW": 496.47},
-    {"mol_name": "Benzoic acid",       "OB": 51.98, "DL": 0.06, "MW": 122.12},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
-    {"mol_name": "Kaempferol",         "OB": 41.88, "DL": 0.24, "MW": 286.24}
+    {
+      "mol_name": "Paeoniflorin",
+      "OB": 53.87,
+      "DL": 0.78,
+      "MW": 480.47
+    },
+    {
+      "mol_name": "Albiflorin",
+      "OB": 31.97,
+      "DL": 0.78,
+      "MW": 480.47
+    },
+    {
+      "mol_name": "Oxypaeoniflorin",
+      "OB": 37.55,
+      "DL": 0.78,
+      "MW": 496.47
+    },
+    {
+      "mol_name": "Benzoic acid",
+      "OB": 51.98,
+      "DL": 0.06,
+      "MW": 122.12
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    },
+    {
+      "mol_name": "Kaempferol",
+      "OB": 41.88,
+      "DL": 0.24,
+      "MW": 286.24
+    }
   ],
   "生地黄": [
-    {"mol_name": "Catalpol",           "OB": 36.62, "DL": 0.32, "MW": 362.33},
-    {"mol_name": "Ajugol",             "OB": 38.43, "DL": 0.45, "MW": 376.36},
-    {"mol_name": "Rehmaglutin A",      "OB": 34.21, "DL": 0.42, "MW": 388.38},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24}
+    {
+      "mol_name": "Catalpol",
+      "OB": 36.62,
+      "DL": 0.32,
+      "MW": 362.33
+    },
+    {
+      "mol_name": "Ajugol",
+      "OB": 38.43,
+      "DL": 0.45,
+      "MW": 376.36
+    },
+    {
+      "mol_name": "Rehmaglutin A",
+      "OB": 34.21,
+      "DL": 0.42,
+      "MW": 388.38
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    }
   ],
   "枸杞子": [
-    {"mol_name": "Zeaxanthin",         "OB": 43.18, "DL": 0.73, "MW": 568.87},
-    {"mol_name": "Betaine",            "OB": 64.59, "DL": 0.08, "MW": 117.15},
-    {"mol_name": "Rutin",              "OB": 31.90, "DL": 0.80, "MW": 610.52},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
-    {"mol_name": "Scopoletin",         "OB": 69.12, "DL": 0.12, "MW": 192.17}
+    {
+      "mol_name": "Zeaxanthin",
+      "OB": 43.18,
+      "DL": 0.73,
+      "MW": 568.87
+    },
+    {
+      "mol_name": "Betaine",
+      "OB": 64.59,
+      "DL": 0.08,
+      "MW": 117.15
+    },
+    {
+      "mol_name": "Rutin",
+      "OB": 31.9,
+      "DL": 0.8,
+      "MW": 610.52
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    },
+    {
+      "mol_name": "Scopoletin",
+      "OB": 69.12,
+      "DL": 0.12,
+      "MW": 192.17
+    }
   ],
   "菊花": [
-    {"mol_name": "Luteolin",           "OB": 36.16, "DL": 0.25, "MW": 286.24},
-    {"mol_name": "Apigenin",           "OB": 45.65, "DL": 0.21, "MW": 270.24},
-    {"mol_name": "Chlorogenic acid",   "OB": 33.15, "DL": 0.35, "MW": 354.31},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
-    {"mol_name": "Acacetin",           "OB": 34.97, "DL": 0.24, "MW": 284.27},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+    {
+      "mol_name": "Luteolin",
+      "OB": 36.16,
+      "DL": 0.25,
+      "MW": 286.24
+    },
+    {
+      "mol_name": "Apigenin",
+      "OB": 45.65,
+      "DL": 0.21,
+      "MW": 270.24
+    },
+    {
+      "mol_name": "Chlorogenic acid",
+      "OB": 33.15,
+      "DL": 0.35,
+      "MW": 354.31
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    },
+    {
+      "mol_name": "Acacetin",
+      "OB": 34.97,
+      "DL": 0.24,
+      "MW": 284.27
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    }
   ],
   "薄荷": [
-    {"mol_name": "Menthol",            "OB": 36.68, "DL": 0.07, "MW": 156.27},
-    {"mol_name": "Menthone",           "OB": 36.97, "DL": 0.06, "MW": 154.25},
-    {"mol_name": "Luteolin",           "OB": 36.16, "DL": 0.25, "MW": 286.24},
-    {"mol_name": "Rosmarinic acid",    "OB": 36.58, "DL": 0.28, "MW": 360.33},
-    {"mol_name": "Diosmin",            "OB": 30.10, "DL": 0.78, "MW": 608.56}
+    {
+      "mol_name": "Menthol",
+      "OB": 36.68,
+      "DL": 0.07,
+      "MW": 156.27
+    },
+    {
+      "mol_name": "Menthone",
+      "OB": 36.97,
+      "DL": 0.06,
+      "MW": 154.25
+    },
+    {
+      "mol_name": "Luteolin",
+      "OB": 36.16,
+      "DL": 0.25,
+      "MW": 286.24
+    },
+    {
+      "mol_name": "Rosmarinic acid",
+      "OB": 36.58,
+      "DL": 0.28,
+      "MW": 360.33
+    },
+    {
+      "mol_name": "Diosmin",
+      "OB": 30.1,
+      "DL": 0.78,
+      "MW": 608.56
+    }
   ],
   "赤石脂": [
-    {"mol_name": "Kaolin",             "OB": 31.00, "DL": 0.20, "MW": 258.16},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
-    {"mol_name": "Kaempferol",         "OB": 41.88, "DL": 0.24, "MW": 286.24},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+    {
+      "mol_name": "Kaolin",
+      "OB": 31.0,
+      "DL": 0.2,
+      "MW": 258.16
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    },
+    {
+      "mol_name": "Kaempferol",
+      "OB": 41.88,
+      "DL": 0.24,
+      "MW": 286.24
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    }
   ],
   "粳米": [
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
-    {"mol_name": "Luteolin",           "OB": 36.16, "DL": 0.25, "MW": 286.24},
-    {"mol_name": "Tricin",             "OB": 37.95, "DL": 0.29, "MW": 330.29},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71},
-    {"mol_name": "Stigmasterol",       "OB": 43.83, "DL": 0.76, "MW": 412.69}
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    },
+    {
+      "mol_name": "Luteolin",
+      "OB": 36.16,
+      "DL": 0.25,
+      "MW": 286.24
+    },
+    {
+      "mol_name": "Tricin",
+      "OB": 37.95,
+      "DL": 0.29,
+      "MW": 330.29
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    },
+    {
+      "mol_name": "Stigmasterol",
+      "OB": 43.83,
+      "DL": 0.76,
+      "MW": 412.69
+    }
   ],
   "鳖甲": [
-    {"mol_name": "Collagen peptide",   "OB": 33.50, "DL": 0.20, "MW": 300.00},
-    {"mol_name": "Keratan",            "OB": 30.10, "DL": 0.19, "MW": 280.00},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+    {
+      "mol_name": "Collagen peptide",
+      "OB": 33.5,
+      "DL": 0.2,
+      "MW": 300.0
+    },
+    {
+      "mol_name": "Keratan",
+      "OB": 30.1,
+      "DL": 0.19,
+      "MW": 280.0
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    }
   ],
   "干姜": [
-    {"mol_name": "6-Gingerol",         "OB": 31.29, "DL": 0.24, "MW": 294.39},
-    {"mol_name": "8-Gingerol",         "OB": 32.15, "DL": 0.28, "MW": 322.45},
-    {"mol_name": "6-Shogaol",          "OB": 49.65, "DL": 0.20, "MW": 276.37},
-    {"mol_name": "Zingerone",          "OB": 50.22, "DL": 0.10, "MW": 194.23},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+    {
+      "mol_name": "6-Gingerol",
+      "OB": 31.29,
+      "DL": 0.24,
+      "MW": 294.39
+    },
+    {
+      "mol_name": "8-Gingerol",
+      "OB": 32.15,
+      "DL": 0.28,
+      "MW": 322.45
+    },
+    {
+      "mol_name": "6-Shogaol",
+      "OB": 49.65,
+      "DL": 0.2,
+      "MW": 276.37
+    },
+    {
+      "mol_name": "Zingerone",
+      "OB": 50.22,
+      "DL": 0.1,
+      "MW": 194.23
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    }
   ],
   "肉桂": [
-    {"mol_name": "Cinnamaldehyde",     "OB": 30.44, "DL": 0.04, "MW": 132.16},
-    {"mol_name": "Cinnamic acid",      "OB": 62.51, "DL": 0.08, "MW": 148.16},
-    {"mol_name": "Coumarin",           "OB": 68.97, "DL": 0.10, "MW": 146.14},
-    {"mol_name": "Eugenol",            "OB": 31.52, "DL": 0.09, "MW": 164.20},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
-    {"mol_name": "Beta-sitosterol",    "OB": 36.91, "DL": 0.75, "MW": 414.71}
+    {
+      "mol_name": "Cinnamaldehyde",
+      "OB": 30.44,
+      "DL": 0.04,
+      "MW": 132.16
+    },
+    {
+      "mol_name": "Cinnamic acid",
+      "OB": 62.51,
+      "DL": 0.08,
+      "MW": 148.16
+    },
+    {
+      "mol_name": "Coumarin",
+      "OB": 68.97,
+      "DL": 0.1,
+      "MW": 146.14
+    },
+    {
+      "mol_name": "Eugenol",
+      "OB": 31.52,
+      "DL": 0.09,
+      "MW": 164.2
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    },
+    {
+      "mol_name": "Beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.71
+    }
   ],
   "防风": [
-    {"mol_name": "Prim-O-glucosylcimifugin","OB": 32.87,"DL": 0.74, "MW": 540.57},
-    {"mol_name": "Cimifugin",          "OB": 58.20, "DL": 0.38, "MW": 378.38},
-    {"mol_name": "Sec-O-glucosylhamaudol","OB":31.49,"DL": 0.74, "MW": 408.44},
-    {"mol_name": "Deltoin",            "OB": 47.79, "DL": 0.41, "MW": 380.39},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24}
+    {
+      "mol_name": "Prim-O-glucosylcimifugin",
+      "OB": 32.87,
+      "DL": 0.74,
+      "MW": 540.57
+    },
+    {
+      "mol_name": "Cimifugin",
+      "OB": 58.2,
+      "DL": 0.38,
+      "MW": 378.38
+    },
+    {
+      "mol_name": "Sec-O-glucosylhamaudol",
+      "OB": 31.49,
+      "DL": 0.74,
+      "MW": 408.44
+    },
+    {
+      "mol_name": "Deltoin",
+      "OB": 47.79,
+      "DL": 0.41,
+      "MW": 380.39
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    }
   ],
   "白芍": [
-    {"mol_name": "Paeoniflorin",       "OB": 53.87, "DL": 0.78, "MW": 480.47},
-    {"mol_name": "Albiflorin",         "OB": 31.97, "DL": 0.78, "MW": 480.47},
-    {"mol_name": "Paeonol",            "OB": 55.10, "DL": 0.10, "MW": 166.18},
-    {"mol_name": "Oxypaeoniflorin",    "OB": 37.55, "DL": 0.78, "MW": 496.47},
-    {"mol_name": "Quercetin",          "OB": 46.43, "DL": 0.28, "MW": 302.24},
-    {"mol_name": "Kaempferol",         "OB": 41.88, "DL": 0.24, "MW": 286.24}
+    {
+      "mol_name": "Paeoniflorin",
+      "OB": 53.87,
+      "DL": 0.78,
+      "MW": 480.47
+    },
+    {
+      "mol_name": "Albiflorin",
+      "OB": 31.97,
+      "DL": 0.78,
+      "MW": 480.47
+    },
+    {
+      "mol_name": "Paeonol",
+      "OB": 55.1,
+      "DL": 0.1,
+      "MW": 166.18
+    },
+    {
+      "mol_name": "Oxypaeoniflorin",
+      "OB": 37.55,
+      "DL": 0.78,
+      "MW": 496.47
+    },
+    {
+      "mol_name": "Quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.24
+    },
+    {
+      "mol_name": "Kaempferol",
+      "OB": 41.88,
+      "DL": 0.24,
+      "MW": 286.24
+    }
+  ],
+  "熟地黄": [
+    {
+      "mol_name": "sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "Stigmasterol",
+      "OB": 43.83,
+      "DL": 0.76,
+      "MW": 412.77
+    }
+  ],
+  "五味子": [
+    {
+      "mol_name": "Longikaurin A",
+      "OB": 47.72,
+      "DL": 0.53,
+      "MW": 348.48
+    },
+    {
+      "mol_name": "Deoxyharringtonine",
+      "OB": 39.27,
+      "DL": 0.81,
+      "MW": 515.66
+    },
+    {
+      "mol_name": "Angeloylgomisin O",
+      "OB": 31.97,
+      "DL": 0.85,
+      "MW": 498.62
+    },
+    {
+      "mol_name": "Schizandrer B",
+      "OB": 30.71,
+      "DL": 0.83,
+      "MW": 514.62
+    },
+    {
+      "mol_name": "Gomisin-A",
+      "OB": 30.69,
+      "DL": 0.78,
+      "MW": 416.51
+    },
+    {
+      "mol_name": "Gomisin G",
+      "OB": 32.68,
+      "DL": 0.83,
+      "MW": 508.61
+    },
+    {
+      "mol_name": "Gomisin R",
+      "OB": 34.84,
+      "DL": 0.86,
+      "MW": 400.46
+    },
+    {
+      "mol_name": "Wuweizisu C",
+      "OB": 46.27,
+      "DL": 0.84,
+      "MW": 384.46
+    }
+  ],
+  "酸枣仁": [
+    {
+      "mol_name": "ceanothic acid",
+      "OB": 33.41,
+      "DL": 0.77,
+      "MW": 486.76
+    },
+    {
+      "mol_name": "(S)-Coclaurine",
+      "OB": 42.35,
+      "DL": 0.24,
+      "MW": 285.37
+    },
+    {
+      "mol_name": "Daucosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "jujuboside A_qt",
+      "OB": 34.96,
+      "DL": 0.62,
+      "MW": 472.78
+    },
+    {
+      "mol_name": "phytosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "sanjoinenine",
+      "OB": 67.28,
+      "DL": 0.79,
+      "MW": 489.67
+    },
+    {
+      "mol_name": "swertisin",
+      "OB": 31.83,
+      "DL": 0.75,
+      "MW": 446.44
+    },
+    {
+      "mol_name": "zizyphusine",
+      "OB": 41.53,
+      "DL": 0.55,
+      "MW": 342.45
+    },
+    {
+      "mol_name": "Mairin",
+      "OB": 55.38,
+      "DL": 0.78,
+      "MW": 456.78
+    }
+  ],
+  "石菖蒲": [
+    {
+      "mol_name": "8-Isopentenyl-kaempferol",
+      "OB": 38.04,
+      "DL": 0.39,
+      "MW": 354.38
+    },
+    {
+      "mol_name": "(1R,3aS,4R,6aS)-1,4-bis(3,4-dimethoxyphenyl)-1,3,3a,4,6,6a-hexahydrofuro[4,3-c]furan",
+      "OB": 52.35,
+      "DL": 0.62,
+      "MW": 386.48
+    },
+    {
+      "mol_name": "Cycloartenol",
+      "OB": 38.69,
+      "DL": 0.78,
+      "MW": 426.8
+    },
+    {
+      "mol_name": "kaempferol",
+      "OB": 41.88,
+      "DL": 0.24,
+      "MW": 286.25
+    }
+  ],
+  "钩藤": [
+    {
+      "mol_name": "beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "kaempferol",
+      "OB": 41.88,
+      "DL": 0.24,
+      "MW": 286.25
+    },
+    {
+      "mol_name": "ent-Epicatechin",
+      "OB": 48.96,
+      "DL": 0.24,
+      "MW": 290.29
+    },
+    {
+      "mol_name": "3-oxo-22α-hydroxyurs-12-en-27,28-dioc acid",
+      "OB": 32.33,
+      "DL": 0.68,
+      "MW": 501.75
+    },
+    {
+      "mol_name": "(3E,4R)-4-(1,3-benzodioxol-5-ylmethyl)-3-[(3,4,5-trimethoxyphenyl)methylidene]oxolan-2-one",
+      "OB": 51.78,
+      "DL": 0.65,
+      "MW": 398.44
+    },
+    {
+      "mol_name": "Tetrahydroalstonine",
+      "OB": 32.42,
+      "DL": 0.81,
+      "MW": 352.47
+    },
+    {
+      "mol_name": "Angustidine",
+      "OB": 51.85,
+      "DL": 0.66,
+      "MW": 301.37
+    },
+    {
+      "mol_name": "geissoschizinc acid",
+      "OB": 49.92,
+      "DL": 0.6,
+      "MW": 352.47
+    },
+    {
+      "mol_name": "SMR000232338",
+      "OB": 56.74,
+      "DL": 0.75,
+      "MW": 368.47
+    },
+    {
+      "mol_name": "(E)-16,17-Didehydro-17-methoxy-17,18-seco-3-beta-yohimban-16-carboxylic acid methyl ester",
+      "OB": 32.75,
+      "DL": 0.64,
+      "MW": 368.52
+    },
+    {
+      "mol_name": "Rhynchophylline A",
+      "OB": 68.68,
+      "DL": 0.69,
+      "MW": 352.47
+    },
+    {
+      "mol_name": "methyl (E)-2-[(2S,3Z,12bS)-3-ethylidene-2,4,6,7,12,12b-hexahydro-1H-indolo[3,2-h]quinolizin-2-yl]-3-methoxyprop-2-enoate",
+      "OB": 56.83,
+      "DL": 0.64,
+      "MW": 366.5
+    },
+    {
+      "mol_name": "Rhynchophylline",
+      "OB": 41.82,
+      "DL": 0.57,
+      "MW": 384.52
+    },
+    {
+      "mol_name": "SMR000232333",
+      "OB": 78.38,
+      "DL": 0.75,
+      "MW": 368.47
+    },
+    {
+      "mol_name": "Isorhyncophylline",
+      "OB": 47.31,
+      "DL": 0.57,
+      "MW": 384.52
+    },
+    {
+      "mol_name": "hirsutasideA",
+      "OB": 70.34,
+      "DL": 0.81,
+      "MW": 438.57
+    },
+    {
+      "mol_name": "(E)-2-[(3S,6'S,7'S,8'aS)-6'-ethyl-2-keto-spiro[indoline-3,1'-indolizidine]-7'-yl]-3-methoxy-acrylic acid methyl ester",
+      "OB": 57.85,
+      "DL": 0.57,
+      "MW": 384.52
+    },
+    {
+      "mol_name": "(E)-2-[(3R,6'S,7'S,8'aS)-6'-ethyl-2-keto-spiro[indoline-3,1'-indolizidine]-7'-yl]-3-methoxy-acrylic acid methyl ester",
+      "OB": 54.47,
+      "DL": 0.57,
+      "MW": 384.52
+    },
+    {
+      "mol_name": "Mitraphyllic acid",
+      "OB": 31.7,
+      "DL": 0.7,
+      "MW": 354.44
+    },
+    {
+      "mol_name": "hirsutasideB",
+      "OB": 40.21,
+      "DL": 0.8,
+      "MW": 432.56
+    },
+    {
+      "mol_name": "corynoxeine",
+      "OB": 57.13,
+      "DL": 0.57,
+      "MW": 382.5
+    },
+    {
+      "mol_name": "methyl (E)-2-[(2S,3R,12bS)-3-vinyl-1,2,3,4,6,7,12,12b-octahydroindolo[3,2-h]quinolizin-2-yl]-3-methoxy-prop-2-enoate",
+      "OB": 31.94,
+      "DL": 0.64,
+      "MW": 366.5
+    },
+    {
+      "mol_name": "(1'R,3S,4a'S,5a'S,10a'R)-1'-methyl-2-oxo-1',4a',5',5a',7',8',10',10a'-octahydrospiro[indoline-3,6'-pyrano[3,4-f]indolizine]-4'-carboxylic acid",
+      "OB": 105.22,
+      "DL": 0.7,
+      "MW": 354.44
+    },
+    {
+      "mol_name": "(2S,12bR)-methyl 2-((E)-1-oxobut-2-en-2-yl)-1,2,6,7,12,12b-hexahydroindolo[2,3-a]quinolizine-3-carboxylate",
+      "OB": 42.07,
+      "DL": 0.6,
+      "MW": 350.45
+    },
+    {
+      "mol_name": "vincoside lactam_qt",
+      "OB": 50.81,
+      "DL": 0.82,
+      "MW": 352.47
+    },
+    {
+      "mol_name": "hirsutasideC",
+      "OB": 34.27,
+      "DL": 0.75,
+      "MW": 556.71
+    },
+    {
+      "mol_name": "hirsutine",
+      "OB": 34.44,
+      "DL": 0.43,
+      "MW": 313.43
+    },
+    {
+      "mol_name": "yohimbine",
+      "OB": 46.42,
+      "DL": 0.81,
+      "MW": 354.49
+    },
+    {
+      "mol_name": "delta(sup 18)-Hirsutine",
+      "OB": 41.64,
+      "DL": 0.64,
+      "MW": 366.5
+    },
+    {
+      "mol_name": "isocorynantheic acid",
+      "OB": 72.36,
+      "DL": 0.6,
+      "MW": 352.47
+    },
+    {
+      "mol_name": "quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.25
+    },
+    {
+      "mol_name": "coryincine",
+      "OB": 38.27,
+      "DL": 0.81,
+      "MW": 354.49
+    }
+  ],
+  "三七": [
+    {
+      "mol_name": "Mandenol",
+      "OB": 42.0,
+      "DL": 0.19,
+      "MW": 308.56
+    },
+    {
+      "mol_name": "DFV",
+      "OB": 32.76,
+      "DL": 0.18,
+      "MW": 256.27
+    },
+    {
+      "mol_name": "Diop",
+      "OB": 43.59,
+      "DL": 0.39,
+      "MW": 390.62
+    },
+    {
+      "mol_name": "beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "Stigmasterol",
+      "OB": 43.83,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "ginsenoside rh2",
+      "OB": 36.32,
+      "DL": 0.56,
+      "MW": 622.98
+    },
+    {
+      "mol_name": "ginsenoside f2",
+      "OB": 36.43,
+      "DL": 0.25,
+      "MW": 785.14
+    },
+    {
+      "mol_name": "quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.25
+    }
+  ],
+  "红花": [
+    {
+      "mol_name": "poriferast-5-en-3beta-ol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "Flavoxanthin",
+      "OB": 60.41,
+      "DL": 0.56,
+      "MW": 584.96
+    },
+    {
+      "mol_name": "4-[(E)-4-(3,5-dimethoxy-4-oxo-1-cyclohexa-2,5-dienylidene)but-2-enylidene]-2,6-dimethoxycyclohexa-2,5-dien-1-one",
+      "OB": 48.47,
+      "DL": 0.36,
+      "MW": 356.4
+    },
+    {
+      "mol_name": "lignan",
+      "OB": 43.32,
+      "DL": 0.65,
+      "MW": 458.55
+    },
+    {
+      "mol_name": "lupeol-palmitate",
+      "OB": 33.98,
+      "DL": 0.32,
+      "MW": 665.26
+    },
+    {
+      "mol_name": "Phytoene",
+      "OB": 39.56,
+      "DL": 0.5,
+      "MW": 545.04
+    },
+    {
+      "mol_name": "phytofluene",
+      "OB": 43.18,
+      "DL": 0.5,
+      "MW": 543.02
+    },
+    {
+      "mol_name": "Pyrethrin II",
+      "OB": 48.36,
+      "DL": 0.35,
+      "MW": 372.5
+    },
+    {
+      "mol_name": "6-Hydroxykaempferol",
+      "OB": 62.13,
+      "DL": 0.27,
+      "MW": 302.25
+    },
+    {
+      "mol_name": "baicalein",
+      "OB": 33.52,
+      "DL": 0.21,
+      "MW": 270.25
+    },
+    {
+      "mol_name": "qt_carthamone",
+      "OB": 51.03,
+      "DL": 0.2,
+      "MW": 286.25
+    },
+    {
+      "mol_name": "6-Hydroxynaringenin",
+      "OB": 33.23,
+      "DL": 0.24,
+      "MW": 288.27
+    },
+    {
+      "mol_name": "quercetagetin",
+      "OB": 45.01,
+      "DL": 0.31,
+      "MW": 318.25
+    },
+    {
+      "mol_name": "7,8-dimethyl-1H-pyrimido[5,6-g]quinoxaline-2,4-dione",
+      "OB": 45.75,
+      "DL": 0.19,
+      "MW": 242.26
+    },
+    {
+      "mol_name": "beta-carotene",
+      "OB": 37.18,
+      "DL": 0.58,
+      "MW": 536.96
+    },
+    {
+      "mol_name": "Baicalin",
+      "OB": 40.12,
+      "DL": 0.75,
+      "MW": 446.39
+    },
+    {
+      "mol_name": "beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "kaempferol",
+      "OB": 41.88,
+      "DL": 0.24,
+      "MW": 286.25
+    },
+    {
+      "mol_name": "Stigmasterol",
+      "OB": 43.83,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "luteolin",
+      "OB": 36.16,
+      "DL": 0.25,
+      "MW": 286.25
+    },
+    {
+      "mol_name": "CLR",
+      "OB": 37.87,
+      "DL": 0.68,
+      "MW": 386.73
+    },
+    {
+      "mol_name": "quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.25
+    }
+  ],
+  "桃仁": [
+    {
+      "mol_name": "Sitosterol alpha1",
+      "OB": 43.28,
+      "DL": 0.78,
+      "MW": 426.8
+    },
+    {
+      "mol_name": "2,3-didehydro GA70",
+      "OB": 63.29,
+      "DL": 0.5,
+      "MW": 330.41
+    },
+    {
+      "mol_name": "2,3-didehydro GA77",
+      "OB": 88.08,
+      "DL": 0.53,
+      "MW": 346.41
+    },
+    {
+      "mol_name": "GA119",
+      "OB": 76.36,
+      "DL": 0.49,
+      "MW": 332.43
+    },
+    {
+      "mol_name": "GA120",
+      "OB": 84.85,
+      "DL": 0.45,
+      "MW": 314.41
+    },
+    {
+      "mol_name": "GA121-isolactone",
+      "OB": 72.7,
+      "DL": 0.54,
+      "MW": 330.41
+    },
+    {
+      "mol_name": "GA122",
+      "OB": 64.79,
+      "DL": 0.5,
+      "MW": 330.41
+    },
+    {
+      "mol_name": "GA122-isolactone",
+      "OB": 88.11,
+      "DL": 0.54,
+      "MW": 330.41
+    },
+    {
+      "mol_name": "gibberellin 17",
+      "OB": 94.64,
+      "DL": 0.49,
+      "MW": 378.46
+    },
+    {
+      "mol_name": "4a-formyl-7alpha-hydroxy-1-methyl-8-methylidene-4aalpha,4bbeta-gibbane-1alpha,10beta-dicarboxylic acid",
+      "OB": 88.6,
+      "DL": 0.46,
+      "MW": 362.46
+    },
+    {
+      "mol_name": "GA30",
+      "OB": 61.72,
+      "DL": 0.54,
+      "MW": 346.41
+    },
+    {
+      "mol_name": "Gibberellin A44",
+      "OB": 101.61,
+      "DL": 0.54,
+      "MW": 346.46
+    },
+    {
+      "mol_name": "GA54",
+      "OB": 64.21,
+      "DL": 0.53,
+      "MW": 348.43
+    },
+    {
+      "mol_name": "GA60",
+      "OB": 93.17,
+      "DL": 0.53,
+      "MW": 348.43
+    },
+    {
+      "mol_name": "GA63",
+      "OB": 65.54,
+      "DL": 0.54,
+      "MW": 348.43
+    },
+    {
+      "mol_name": "gibberellin 7",
+      "OB": 73.8,
+      "DL": 0.5,
+      "MW": 330.41
+    },
+    {
+      "mol_name": "GA77",
+      "OB": 87.89,
+      "DL": 0.53,
+      "MW": 348.43
+    },
+    {
+      "mol_name": "GA87",
+      "OB": 68.85,
+      "DL": 0.57,
+      "MW": 362.41
+    },
+    {
+      "mol_name": "3-O-p-coumaroylquinic acid",
+      "OB": 37.63,
+      "DL": 0.29,
+      "MW": 338.34
+    },
+    {
+      "mol_name": "Populoside_qt",
+      "OB": 108.89,
+      "DL": 0.2,
+      "MW": 286.3
+    },
+    {
+      "mol_name": "hederagenin",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "campesterol",
+      "OB": 37.58,
+      "DL": 0.71,
+      "MW": 400.76
+    }
+  ],
+  "益母草": [
+    {
+      "mol_name": "galeopsin",
+      "OB": 61.02,
+      "DL": 0.38,
+      "MW": 376.54
+    },
+    {
+      "mol_name": "ZINC04073977",
+      "OB": 38.0,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "preleoheterin",
+      "OB": 85.97,
+      "DL": 0.33,
+      "MW": 334.5
+    },
+    {
+      "mol_name": "iso-preleoheterin",
+      "OB": 66.29,
+      "DL": 0.33,
+      "MW": 334.5
+    },
+    {
+      "mol_name": "quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.25
+    },
+    {
+      "mol_name": "arachidonic acid",
+      "OB": 45.57,
+      "DL": 0.2,
+      "MW": 304.52
+    },
+    {
+      "mol_name": "isorhamnetin",
+      "OB": 49.6,
+      "DL": 0.31,
+      "MW": 316.28
+    },
+    {
+      "mol_name": "kaempferol",
+      "OB": 41.88,
+      "DL": 0.24,
+      "MW": 286.25
+    }
+  ],
+  "车前子": [
+    {
+      "mol_name": "(4aS,6aR,6aS,6bR,8aR,10R,12aR,14bS)-10-hydroxy-2,2,6a,6b,9,9,12a-heptamethyl-1,3,4,5,6,6a,7,8,8a,10,11,12,13,14b-tetradecahydropicene-4a-carboxylic acid",
+      "OB": 32.03,
+      "DL": 0.76,
+      "MW": 456.78
+    },
+    {
+      "mol_name": "Dinatin",
+      "OB": 30.97,
+      "DL": 0.27,
+      "MW": 300.28
+    },
+    {
+      "mol_name": "sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "daucostero_qt",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "Dihydrotricetin",
+      "OB": 58.12,
+      "DL": 0.28,
+      "MW": 304.27
+    },
+    {
+      "mol_name": "Hypolaetin",
+      "OB": 33.24,
+      "DL": 0.28,
+      "MW": 302.25
+    },
+    {
+      "mol_name": "orobanchoside_qt",
+      "OB": 55.99,
+      "DL": 0.82,
+      "MW": 476.47
+    },
+    {
+      "mol_name": "plantaginin_qt",
+      "OB": 54.04,
+      "DL": 0.24,
+      "MW": 288.27
+    },
+    {
+      "mol_name": "quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.25
+    }
+  ],
+  "泽泻": [
+    {
+      "mol_name": "sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "Alisol B",
+      "OB": 34.47,
+      "DL": 0.82,
+      "MW": 472.78
+    },
+    {
+      "mol_name": "Alisol B monoacetate",
+      "OB": 35.58,
+      "DL": 0.81,
+      "MW": 514.82
+    },
+    {
+      "mol_name": "alisol,b,23-acetate",
+      "OB": 32.52,
+      "DL": 0.82,
+      "MW": 446.74
+    },
+    {
+      "mol_name": "16β-methoxyalisol B monoacetate",
+      "OB": 32.43,
+      "DL": 0.77,
+      "MW": 544.85
+    },
+    {
+      "mol_name": "alisol B",
+      "OB": 36.76,
+      "DL": 0.82,
+      "MW": 444.72
+    },
+    {
+      "mol_name": "alisol C",
+      "OB": 32.7,
+      "DL": 0.82,
+      "MW": 486.76
+    },
+    {
+      "mol_name": "alisol C monoacetate",
+      "OB": 33.06,
+      "DL": 0.83,
+      "MW": 514.77
+    },
+    {
+      "mol_name": "1-Monolinolein",
+      "OB": 37.18,
+      "DL": 0.3,
+      "MW": 354.59
+    },
+    {
+      "mol_name": "[(1S,3R)-1-[(2R)-3,3-dimethyloxiran-2-yl]-3-[(5R,8S,9S,10S,11S,14R)-11-hydroxy-4,4,8,10,14-pentamethyl-3-oxo-1,2,5,6,7,9,11,12,15,16-decahydrocyclopenta[a]phenanthren-17-yl]butyl] acetate",
+      "OB": 35.58,
+      "DL": 0.81,
+      "MW": 514.82
+    }
+  ],
+  "茵陈": [
+    {
+      "mol_name": "isorhamnetin",
+      "OB": 49.6,
+      "DL": 0.31,
+      "MW": 316.28
+    },
+    {
+      "mol_name": "beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "Areapillin",
+      "OB": 48.96,
+      "DL": 0.41,
+      "MW": 360.34
+    },
+    {
+      "mol_name": "Genkwanin",
+      "OB": 37.13,
+      "DL": 0.24,
+      "MW": 284.28
+    },
+    {
+      "mol_name": "Skrofulein",
+      "OB": 30.35,
+      "DL": 0.3,
+      "MW": 314.31
+    },
+    {
+      "mol_name": "Isoarcapillin",
+      "OB": 57.4,
+      "DL": 0.41,
+      "MW": 360.34
+    },
+    {
+      "mol_name": "Eupalitin",
+      "OB": 46.11,
+      "DL": 0.33,
+      "MW": 330.31
+    },
+    {
+      "mol_name": "Eupatolitin",
+      "OB": 42.55,
+      "DL": 0.37,
+      "MW": 346.31
+    },
+    {
+      "mol_name": "capillarisin",
+      "OB": 57.56,
+      "DL": 0.31,
+      "MW": 316.28
+    },
+    {
+      "mol_name": "4'-Methylcapillarisin",
+      "OB": 72.18,
+      "DL": 0.35,
+      "MW": 330.31
+    },
+    {
+      "mol_name": "Demethoxycapillarisin",
+      "OB": 52.33,
+      "DL": 0.25,
+      "MW": 286.25
+    },
+    {
+      "mol_name": "Artepillin A",
+      "OB": 68.32,
+      "DL": 0.24,
+      "MW": 316.43
+    },
+    {
+      "mol_name": "quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.25
+    }
+  ],
+  "金钱草": [
+    {
+      "mol_name": "acacetin",
+      "OB": 34.97,
+      "DL": 0.24,
+      "MW": 284.28
+    },
+    {
+      "mol_name": "Linarin",
+      "OB": 39.84,
+      "DL": 0.71,
+      "MW": 592.6
+    },
+    {
+      "mol_name": "Hesperetin",
+      "OB": 70.31,
+      "DL": 0.27,
+      "MW": 302.3
+    },
+    {
+      "mol_name": "isorhamnetin",
+      "OB": 49.6,
+      "DL": 0.31,
+      "MW": 316.28
+    },
+    {
+      "mol_name": "sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "kaempferol",
+      "OB": 41.88,
+      "DL": 0.24,
+      "MW": 286.25
+    },
+    {
+      "mol_name": "daucostero_qt",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "ent-Epicatechin",
+      "OB": 48.96,
+      "DL": 0.24,
+      "MW": 290.29
+    },
+    {
+      "mol_name": "rhamnocitrin-3,4'-diglucOside",
+      "OB": 32.52,
+      "DL": 0.64,
+      "MW": 624.6
+    },
+    {
+      "mol_name": "quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.25
+    }
+  ],
+  "杏仁": [
+    {
+      "mol_name": "estrone",
+      "OB": 53.56,
+      "DL": 0.32,
+      "MW": 270.4
+    },
+    {
+      "mol_name": "Diisooctyl succinate",
+      "OB": 31.62,
+      "DL": 0.23,
+      "MW": 342.58
+    },
+    {
+      "mol_name": "11,14-eicosadienoic acid",
+      "OB": 39.99,
+      "DL": 0.2,
+      "MW": 308.56
+    },
+    {
+      "mol_name": "(6Z,10E,14E,18E)-2,6,10,15,19,23-hexamethyltetracosa-2,6,10,14,18,22-hexaene",
+      "OB": 33.55,
+      "DL": 0.42,
+      "MW": 410.8
+    },
+    {
+      "mol_name": "sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "Stigmasterol",
+      "OB": 43.83,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "gondoic acid",
+      "OB": 30.7,
+      "DL": 0.2,
+      "MW": 310.58
+    },
+    {
+      "mol_name": "CLR",
+      "OB": 37.87,
+      "DL": 0.68,
+      "MW": 386.73
+    },
+    {
+      "mol_name": "Mairin",
+      "OB": 55.38,
+      "DL": 0.78,
+      "MW": 456.78
+    },
+    {
+      "mol_name": "(+)-catechin",
+      "OB": 54.83,
+      "DL": 0.24,
+      "MW": 290.29
+    },
+    {
+      "mol_name": "Glycyrol",
+      "OB": 90.78,
+      "DL": 0.67,
+      "MW": 366.39
+    },
+    {
+      "mol_name": "Ziziphin_qt",
+      "OB": 66.95,
+      "DL": 0.62,
+      "MW": 472.78
+    },
+    {
+      "mol_name": "Spinasterol",
+      "OB": 42.98,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "Licochalcone B",
+      "OB": 76.76,
+      "DL": 0.19,
+      "MW": 286.3
+    },
+    {
+      "mol_name": "liquiritin",
+      "OB": 65.69,
+      "DL": 0.74,
+      "MW": 418.43
+    },
+    {
+      "mol_name": "Glabridin",
+      "OB": 53.25,
+      "DL": 0.47,
+      "MW": 324.4
+    },
+    {
+      "mol_name": "Phaseol",
+      "OB": 78.77,
+      "DL": 0.58,
+      "MW": 336.36
+    },
+    {
+      "mol_name": "Machiline",
+      "OB": 79.64,
+      "DL": 0.24,
+      "MW": 285.37
+    },
+    {
+      "mol_name": "l-SPD",
+      "OB": 87.35,
+      "DL": 0.54,
+      "MW": 327.41
+    }
+  ],
+  "桔梗": [
+    {
+      "mol_name": "acacetin",
+      "OB": 34.97,
+      "DL": 0.24,
+      "MW": 284.28
+    },
+    {
+      "mol_name": "Spinasterol",
+      "OB": 42.98,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "cis-Dihydroquercetin",
+      "OB": 66.44,
+      "DL": 0.27,
+      "MW": 304.27
+    },
+    {
+      "mol_name": "2-O-methyl-3―O-β-D-glucopyranosyl platycogenate A",
+      "OB": 45.15,
+      "DL": 0.25,
+      "MW": 739.01
+    },
+    {
+      "mol_name": "luteolin",
+      "OB": 36.16,
+      "DL": 0.25,
+      "MW": 286.25
+    },
+    {
+      "mol_name": "dimethyl 2-O-methyl-3-O-a-D-glucopyranosyl platycogenate A",
+      "OB": 39.21,
+      "DL": 0.25,
+      "MW": 739.01
+    },
+    {
+      "mol_name": "robinin",
+      "OB": 39.84,
+      "DL": 0.71,
+      "MW": 592.6
+    }
+  ],
+  "砂仁": [
+    {
+      "mol_name": "24-Ethylcholest-4-en-3-one",
+      "OB": 36.08,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "poriferast-5-en-3beta-ol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "Sitosteryl acetate",
+      "OB": 40.39,
+      "DL": 0.85,
+      "MW": 456.83
+    },
+    {
+      "mol_name": "beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "icosa-11,14,17-trienoic acid methyl ester",
+      "OB": 44.81,
+      "DL": 0.23,
+      "MW": 320.57
+    },
+    {
+      "mol_name": "Stigmasterol",
+      "OB": 43.83,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "vitamin-e",
+      "OB": 32.29,
+      "DL": 0.7,
+      "MW": 490.69
+    },
+    {
+      "mol_name": "methyl icosa-11,14-dienoate",
+      "OB": 39.67,
+      "DL": 0.23,
+      "MW": 322.59
+    },
+    {
+      "mol_name": "(5S,8S,9S,10R,13R,14S,17R)-17-[(1R,4R)-4-ethyl-1,5-dimethylhexyl]-10,13-dimethyl-2,4,5,7,8,9,11,12,14,15,16,17-dodecahydro-1H-cyclopenta[a]phenanthrene-3,6-dione",
+      "OB": 33.12,
+      "DL": 0.79,
+      "MW": 428.77
+    },
+    {
+      "mol_name": "Stigmasta-5,22-dien-3-beta-yl acetate",
+      "OB": 46.44,
+      "DL": 0.86,
+      "MW": 454.81
+    }
+  ],
+  "藿香": [
+    {
+      "mol_name": "Diop",
+      "OB": 43.59,
+      "DL": 0.39,
+      "MW": 390.62
+    },
+    {
+      "mol_name": "Genkwanin",
+      "OB": 37.13,
+      "DL": 0.24,
+      "MW": 284.28
+    },
+    {
+      "mol_name": "patchoulan 1,12-diol",
+      "OB": 38.17,
+      "DL": 0.25,
+      "MW": 262.43
+    },
+    {
+      "mol_name": "pachypodol",
+      "OB": 75.06,
+      "DL": 0.4,
+      "MW": 356.4
+    },
+    {
+      "mol_name": "5-Hydroxy-7,4'-dimethoxyflavanon",
+      "OB": 51.54,
+      "DL": 0.27,
+      "MW": 300.33
+    },
+    {
+      "mol_name": "irisolidone",
+      "OB": 37.78,
+      "DL": 0.3,
+      "MW": 314.31
+    },
+    {
+      "mol_name": "phenanthrone",
+      "OB": 38.7,
+      "DL": 0.33,
+      "MW": 293.34
+    },
+    {
+      "mol_name": "quercetin 7-O-β-D-glucoside",
+      "OB": 49.57,
+      "DL": 0.27,
+      "MW": 300.28
+    },
+    {
+      "mol_name": "Acanthoside B",
+      "OB": 43.35,
+      "DL": 0.77,
+      "MW": 580.64
+    },
+    {
+      "mol_name": "3,23-dihydroxy-12-oleanen-28-oic acid",
+      "OB": 30.86,
+      "DL": 0.86,
+      "MW": 518.56
+    },
+    {
+      "mol_name": "quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.25
+    }
+  ],
+  "苍术": [
+    {
+      "mol_name": "wogonin",
+      "OB": 30.68,
+      "DL": 0.23,
+      "MW": 284.28
+    },
+    {
+      "mol_name": "2-Hydroxyisoxypropyl-3-hydroxy-7-isopentene-2,3-dihydrobenzofuran-5-carboxylic",
+      "OB": 45.2,
+      "DL": 0.2,
+      "MW": 306.39
+    },
+    {
+      "mol_name": "NSC63551",
+      "OB": 39.25,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "Stigmasterol 3-O-beta-D-glucopyranoside_qt",
+      "OB": 43.83,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "3β-acetoxyatractylone",
+      "OB": 40.57,
+      "DL": 0.22,
+      "MW": 274.39
+    },
+    {
+      "mol_name": "beta-daucosterol_qt",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "beta-sitosterol 3-O-glucoside_qt",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "daucosterin_qt",
+      "OB": 36.91,
+      "DL": 0.76,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "daucosterol_qt",
+      "OB": 36.91,
+      "DL": 0.76,
+      "MW": 414.79
+    }
+  ],
+  "葛根": [
+    {
+      "mol_name": "formononetin",
+      "OB": 69.67,
+      "DL": 0.21,
+      "MW": 268.28
+    },
+    {
+      "mol_name": "beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "3'-Methoxydaidzein",
+      "OB": 48.57,
+      "DL": 0.24,
+      "MW": 284.28
+    },
+    {
+      "mol_name": "Daidzein-4,7-diglucoside",
+      "OB": 47.27,
+      "DL": 0.67,
+      "MW": 578.57
+    }
+  ],
+  "升麻": [
+    {
+      "mol_name": "23-epi-26-deoxyactein_qt",
+      "OB": 47.64,
+      "DL": 0.35,
+      "MW": 470.76
+    },
+    {
+      "mol_name": "24-epi-acerinol",
+      "OB": 31.31,
+      "DL": 0.42,
+      "MW": 486.76
+    },
+    {
+      "mol_name": "25-o-acetylcimigenol-3-o-beta-d-glc(1-2)beta-d-xylopyranoside_qt",
+      "OB": 30.04,
+      "DL": 0.32,
+      "MW": 530.82
+    },
+    {
+      "mol_name": "7,8-didehydrocimigenol",
+      "OB": 36.79,
+      "DL": 0.4,
+      "MW": 486.76
+    },
+    {
+      "mol_name": "Norkhelloside",
+      "OB": 31.31,
+      "DL": 0.84,
+      "MW": 526.49
+    },
+    {
+      "mol_name": "Tuberosine A",
+      "OB": 102.67,
+      "DL": 0.34,
+      "MW": 343.41
+    },
+    {
+      "mol_name": "cimicifugic acid",
+      "OB": 83.02,
+      "DL": 0.45,
+      "MW": 372.4
+    },
+    {
+      "mol_name": "cimicifugoside_qt",
+      "OB": 33.84,
+      "DL": 0.74,
+      "MW": 484.74
+    },
+    {
+      "mol_name": "cimigenol",
+      "OB": 37.19,
+      "DL": 0.4,
+      "MW": 488.78
+    },
+    {
+      "mol_name": "methylcimicifugoside_qt",
+      "OB": 30.19,
+      "DL": 0.24,
+      "MW": 556.81
+    },
+    {
+      "mol_name": "visamminol",
+      "OB": 50.01,
+      "DL": 0.23,
+      "MW": 276.31
+    },
+    {
+      "mol_name": "(20r,24r)-24,25-epoxy-3-beta-(beta-d-xylopyranosyloxy)-9,19-cyclolanost-7-ene-16,23-dione_qt",
+      "OB": 40.1,
+      "DL": 0.76,
+      "MW": 468.74
+    },
+    {
+      "mol_name": "paeoniflorin",
+      "OB": 53.87,
+      "DL": 0.79,
+      "MW": 480.51
+    },
+    {
+      "mol_name": "paeoniflorin_qt",
+      "OB": 68.18,
+      "DL": 0.4,
+      "MW": 318.35
+    },
+    {
+      "mol_name": "sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "Stigmasterol",
+      "OB": 43.83,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "(Z)-3-(4-hydroxy-3-methoxy-phenyl)-N-[2-(4-hydroxyphenyl)ethyl]acrylamide",
+      "OB": 118.35,
+      "DL": 0.26,
+      "MW": 313.38
+    }
+  ],
+  "板蓝根": [
+    {
+      "mol_name": "acacetin",
+      "OB": 34.97,
+      "DL": 0.24,
+      "MW": 284.28
+    },
+    {
+      "mol_name": "isovitexin",
+      "OB": 31.29,
+      "DL": 0.72,
+      "MW": 432.41
+    },
+    {
+      "mol_name": "Isaindigodione",
+      "OB": 60.12,
+      "DL": 0.41,
+      "MW": 326.38
+    },
+    {
+      "mol_name": "2-O-beta-D-glucopyranosyl-2H-1,4-benzoxazin-3(4H)-one",
+      "OB": 43.62,
+      "DL": 0.31,
+      "MW": 327.32
+    },
+    {
+      "mol_name": "pinoresinol-4-O-beta-D-apiosyl-beta-D-glucopyranoside",
+      "OB": 36.45,
+      "DL": 0.51,
+      "MW": 618.74
+    },
+    {
+      "mol_name": "3-[ 2′ -( 5′ - hydroxymethyl) furyl ] -1 ( 2H) -isoquinolinone-7-O-BETA-D-glucoside_qt",
+      "OB": 51.74,
+      "DL": 0.18,
+      "MW": 257.26
+    },
+    {
+      "mol_name": "EUPATORIN",
+      "OB": 30.23,
+      "DL": 0.37,
+      "MW": 344.34
+    },
+    {
+      "mol_name": "3-[[(2R,3R,5R,6S)-3,5-dihydroxy-6-(1H-indol-3-yloxy)-4-oxooxan-2-yl]methoxy]-3-oxopropanoic acid",
+      "OB": 85.87,
+      "DL": 0.47,
+      "MW": 379.35
+    },
+    {
+      "mol_name": "Dinatin",
+      "OB": 30.97,
+      "DL": 0.27,
+      "MW": 300.28
+    },
+    {
+      "mol_name": "(-)-taxifolin",
+      "OB": 60.51,
+      "DL": 0.27,
+      "MW": 304.27
+    },
+    {
+      "mol_name": "ZINC03860434",
+      "OB": 43.59,
+      "DL": 0.35,
+      "MW": 390.62
+    },
+    {
+      "mol_name": "glucobrassicin",
+      "OB": 66.02,
+      "DL": 0.48,
+      "MW": 448.52
+    },
+    {
+      "mol_name": "24-Ethylcholest-4-en-3-one",
+      "OB": 36.08,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "quindoline",
+      "OB": 33.17,
+      "DL": 0.22,
+      "MW": 218.27
+    },
+    {
+      "mol_name": "hydroxyindirubin",
+      "OB": 63.37,
+      "DL": 0.3,
+      "MW": 278.28
+    },
+    {
+      "mol_name": "beta-sitosterol dodecantate",
+      "OB": 34.57,
+      "DL": 0.57,
+      "MW": 597.13
+    },
+    {
+      "mol_name": "poriferast-5-en-3beta-ol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "Ineketone",
+      "OB": 37.14,
+      "DL": 0.3,
+      "MW": 318.5
+    },
+    {
+      "mol_name": "Sinoacutine",
+      "OB": 49.11,
+      "DL": 0.46,
+      "MW": 327.41
+    },
+    {
+      "mol_name": "Indigo",
+      "OB": 38.2,
+      "DL": 0.26,
+      "MW": 262.28
+    },
+    {
+      "mol_name": "(2Z)-2-(2-oxoindolin-3-ylidene)indolin-3-one",
+      "OB": 48.4,
+      "DL": 0.26,
+      "MW": 262.28
+    },
+    {
+      "mol_name": "2-(9-((3-methyl-2-oxopent-3-en-1-yl)oxy)-2-oxo-1,2,8,9-tetrahydrofuro[2,3-h]quinolin-8-yl)propan-2-yl acetate",
+      "OB": 64.0,
+      "DL": 0.57,
+      "MW": 399.48
+    },
+    {
+      "mol_name": "Linarin",
+      "OB": 39.84,
+      "DL": 0.71,
+      "MW": 592.6
+    },
+    {
+      "mol_name": "DFV",
+      "OB": 32.76,
+      "DL": 0.18,
+      "MW": 256.27
+    },
+    {
+      "mol_name": "(E)-2-[(3-indole)cyanomethylene-]-3-indolinone",
+      "OB": 54.59,
+      "DL": 0.32,
+      "MW": 300.36
+    },
+    {
+      "mol_name": "neohesperidin_qt",
+      "OB": 71.17,
+      "DL": 0.27,
+      "MW": 302.3
+    },
+    {
+      "mol_name": "rosasterol",
+      "OB": 35.87,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "Sinensetin",
+      "OB": 50.56,
+      "DL": 0.45,
+      "MW": 372.4
+    },
+    {
+      "mol_name": "Stigmasta-5,22-diene-3beta,7alpha-diol",
+      "OB": 43.04,
+      "DL": 0.82,
+      "MW": 440.83
+    },
+    {
+      "mol_name": "Stigmasta-5,22-diene-3beta,7beta-diol",
+      "OB": 42.56,
+      "DL": 0.83,
+      "MW": 454.86
+    },
+    {
+      "mol_name": "6-(3-oxoindolin-2-ylidene)indolo[2,1-b]quinazolin-12-one",
+      "OB": 45.28,
+      "DL": 0.89,
+      "MW": 363.39
+    },
+    {
+      "mol_name": "(E)-3-(3,5-dimethoxy-4-hydroxy-benzylidene)-2-indolinone",
+      "OB": 57.18,
+      "DL": 0.25,
+      "MW": 297.33
+    },
+    {
+      "mol_name": "(E)-3-(3,5-dimethoxy-4-hydroxyb-enzylidene)-2-indolinone",
+      "OB": 65.17,
+      "DL": 0.25,
+      "MW": 299.35
+    },
+    {
+      "mol_name": "3-[(3,5-dimethoxy-4-oxo-1-cyclohexa-2,5-dienylidene)methyl]-2,4-dihydro-1H-pyrrolo[2,1-b]quinazolin-9-one",
+      "OB": 51.84,
+      "DL": 0.56,
+      "MW": 350.4
+    },
+    {
+      "mol_name": "Glucobrassicin-1-Sulfonate_qt",
+      "OB": 42.52,
+      "DL": 0.24,
+      "MW": 365.42
+    },
+    {
+      "mol_name": "beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "Stigmasterol",
+      "OB": 43.83,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "CLR",
+      "OB": 37.87,
+      "DL": 0.68,
+      "MW": 386.73
+    }
+  ],
+  "鱼腥草": [
+    {
+      "mol_name": "Isoramanone",
+      "OB": 39.97,
+      "DL": 0.51,
+      "MW": 348.53
+    },
+    {
+      "mol_name": "kaempferol",
+      "OB": 41.88,
+      "DL": 0.24,
+      "MW": 286.25
+    },
+    {
+      "mol_name": "1-methyl-2-nonacosyl-4-quinolone",
+      "OB": 31.54,
+      "DL": 0.5,
+      "MW": 566.07
+    },
+    {
+      "mol_name": "Ruvoside_qt",
+      "OB": 36.12,
+      "DL": 0.76,
+      "MW": 390.57
+    },
+    {
+      "mol_name": "C09747",
+      "OB": 37.28,
+      "DL": 0.25,
+      "MW": 296.35
+    },
+    {
+      "mol_name": "Spinasterol",
+      "OB": 42.98,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.25
+    }
+  ],
+  "山药": [
+    {
+      "mol_name": "piperlonguminine",
+      "OB": 30.71,
+      "DL": 0.18,
+      "MW": 273.36
+    },
+    {
+      "mol_name": "(-)-taxifolin",
+      "OB": 60.51,
+      "DL": 0.27,
+      "MW": 304.27
+    },
+    {
+      "mol_name": "Denudatin B",
+      "OB": 61.47,
+      "DL": 0.38,
+      "MW": 356.45
+    },
+    {
+      "mol_name": "Kadsurenone",
+      "OB": 54.72,
+      "DL": 0.38,
+      "MW": 356.45
+    },
+    {
+      "mol_name": "hancinol",
+      "OB": 64.01,
+      "DL": 0.37,
+      "MW": 372.5
+    },
+    {
+      "mol_name": "hancinone C",
+      "OB": 59.05,
+      "DL": 0.39,
+      "MW": 400.51
+    },
+    {
+      "mol_name": "24-Methylcholest-5-enyl-3belta-O-glucopyranoside_qt",
+      "OB": 37.58,
+      "DL": 0.72,
+      "MW": 400.76
+    },
+    {
+      "mol_name": "campesterol",
+      "OB": 37.58,
+      "DL": 0.71,
+      "MW": 400.76
+    },
+    {
+      "mol_name": "Isofucosterol",
+      "OB": 43.78,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "Stigmasterol",
+      "OB": 43.83,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "Dioscoreside C_qt",
+      "OB": 36.38,
+      "DL": 0.87,
+      "MW": 444.72
+    },
+    {
+      "mol_name": "diosgenin",
+      "OB": 80.88,
+      "DL": 0.81,
+      "MW": 414.69
+    },
+    {
+      "mol_name": "Doradexanthin",
+      "OB": 38.16,
+      "DL": 0.54,
+      "MW": 584.96
+    },
+    {
+      "mol_name": "Methylcimicifugoside_qt",
+      "OB": 31.69,
+      "DL": 0.24,
+      "MW": 556.81
+    },
+    {
+      "mol_name": "AIDS180907",
+      "OB": 45.33,
+      "DL": 0.77,
+      "MW": 394.45
+    },
+    {
+      "mol_name": "CLR",
+      "OB": 37.87,
+      "DL": 0.68,
+      "MW": 386.73
+    }
+  ],
+  "山茱萸": [
+    {
+      "mol_name": "Mandenol",
+      "OB": 42.0,
+      "DL": 0.19,
+      "MW": 308.56
+    },
+    {
+      "mol_name": "Ethyl linolenate",
+      "OB": 46.1,
+      "DL": 0.2,
+      "MW": 306.54
+    },
+    {
+      "mol_name": "poriferast-5-en-3beta-ol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "Diop",
+      "OB": 43.59,
+      "DL": 0.39,
+      "MW": 390.62
+    },
+    {
+      "mol_name": "Ethyl oleate (NF)",
+      "OB": 32.4,
+      "DL": 0.19,
+      "MW": 310.58
+    },
+    {
+      "mol_name": "Leucanthoside",
+      "OB": 32.12,
+      "DL": 0.78,
+      "MW": 462.44
+    },
+    {
+      "mol_name": "beta-sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "Stigmasterol",
+      "OB": 43.83,
+      "DL": 0.76,
+      "MW": 412.77
+    },
+    {
+      "mol_name": "malkangunin",
+      "OB": 57.71,
+      "DL": 0.63,
+      "MW": 432.56
+    },
+    {
+      "mol_name": "2,6,10,14,18-pentamethylicosa-2,6,10,14,18-pentaene",
+      "OB": 33.4,
+      "DL": 0.24,
+      "MW": 342.67
+    },
+    {
+      "mol_name": "3,4-Dehydrolycopen-16-al",
+      "OB": 46.64,
+      "DL": 0.49,
+      "MW": 548.92
+    },
+    {
+      "mol_name": "3,6-Digalloylglucose",
+      "OB": 31.42,
+      "DL": 0.66,
+      "MW": 484.4
+    },
+    {
+      "mol_name": "Cornudentanone",
+      "OB": 39.66,
+      "DL": 0.33,
+      "MW": 378.56
+    },
+    {
+      "mol_name": "Hydroxygenkwanin",
+      "OB": 36.47,
+      "DL": 0.27,
+      "MW": 300.28
+    },
+    {
+      "mol_name": "Telocinobufagin",
+      "OB": 69.99,
+      "DL": 0.79,
+      "MW": 402.58
+    },
+    {
+      "mol_name": "Tetrahydroalstonine",
+      "OB": 32.42,
+      "DL": 0.81,
+      "MW": 352.47
+    },
+    {
+      "mol_name": "gallic acid-3-O-(6'-O-galloyl)-glucoside",
+      "OB": 30.25,
+      "DL": 0.67,
+      "MW": 484.4
+    },
+    {
+      "mol_name": "gemin D",
+      "OB": 68.83,
+      "DL": 0.56,
+      "MW": 634.49
+    },
+    {
+      "mol_name": "lanosta-8,24-dien-3-ol,3-acetate",
+      "OB": 44.3,
+      "DL": 0.82,
+      "MW": 468.84
+    }
+  ],
+  "牡丹皮": [
+    {
+      "mol_name": "paeoniflorin_qt",
+      "OB": 68.18,
+      "DL": 0.4,
+      "MW": 318.35
+    },
+    {
+      "mol_name": "Mairin",
+      "OB": 55.38,
+      "DL": 0.78,
+      "MW": 456.78
+    },
+    {
+      "mol_name": "sitosterol",
+      "OB": 36.91,
+      "DL": 0.75,
+      "MW": 414.79
+    },
+    {
+      "mol_name": "kaempferol",
+      "OB": 41.88,
+      "DL": 0.24,
+      "MW": 286.25
+    },
+    {
+      "mol_name": "(+)-catechin",
+      "OB": 54.83,
+      "DL": 0.24,
+      "MW": 290.29
+    },
+    {
+      "mol_name": "benzoyl paeoniflorin",
+      "OB": 31.14,
+      "DL": 0.54,
+      "MW": 584.62
+    },
+    {
+      "mol_name": "4-O-methylpaeoniflorin_qt",
+      "OB": 67.24,
+      "DL": 0.43,
+      "MW": 332.38
+    },
+    {
+      "mol_name": "5-[[5-(4-methoxyphenyl)-2-furyl]methylene]barbituric acid",
+      "OB": 43.44,
+      "DL": 0.3,
+      "MW": 312.3
+    },
+    {
+      "mol_name": "mudanpioside-h_qt 2",
+      "OB": 42.36,
+      "DL": 0.37,
+      "MW": 336.37
+    },
+    {
+      "mol_name": "paeonidanin_qt",
+      "OB": 65.31,
+      "DL": 0.35,
+      "MW": 330.41
+    },
+    {
+      "mol_name": "quercetin",
+      "OB": 46.43,
+      "DL": 0.28,
+      "MW": 302.25
+    }
   ]
 }
