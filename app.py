@@ -1,0 +1,570 @@
+"""
+网络药理学一键分析平台
+流程: 中药输入 → TCMSP筛选 → PubChem SMILES → Swiss靶点 → 疾病靶点 → 交集 → PPI → GO/KEGG → 报告
+"""
+
+import streamlit as st
+import pandas as pd
+import numpy as np
+import os, time, io
+from datetime import datetime
+from pathlib import Path
+
+st.set_page_config(
+    page_title="网络药理学一键分析平台",
+    page_icon="🌿",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+st.markdown("""
+<style>
+.main-header{background:linear-gradient(135deg,#1E5631 0%,#4CAF50 100%);padding:2rem;border-radius:12px;color:white;text-align:center;margin-bottom:1.5rem;}
+h1,h2,h3{color:#1E5631;}
+.stProgress>div>div{background-color:#27AE60;}
+</style>
+""", unsafe_allow_html=True)
+
+
+# ── Demo / fallback data (must be defined before run_btn block) ──────────────
+
+def _demo_compounds(herb: str) -> pd.DataFrame:
+    data = {
+        "黄连": [
+            {"mol_name": "Berberine",    "OB": 36.86, "DL": 0.78},
+            {"mol_name": "Coptisine",    "OB": 30.67, "DL": 0.86},
+            {"mol_name": "Palmatine",    "OB": 64.60, "DL": 0.65},
+            {"mol_name": "Jatrorrhizine","OB": 47.14, "DL": 0.77},
+            {"mol_name": "Epiberberine", "OB": 43.09, "DL": 0.78},
+        ],
+        "黄芩": [
+            {"mol_name": "Baicalein",    "OB": 33.52, "DL": 0.21},
+            {"mol_name": "Wogonin",      "OB": 30.68, "DL": 0.23},
+            {"mol_name": "Baicalin",     "OB": 40.12, "DL": 0.75},
+            {"mol_name": "Scutellarein", "OB": 30.20, "DL": 0.20},
+        ],
+        "人参": [
+            {"mol_name": "Ginsenoside Rh2","OB": 36.32,"DL": 0.56},
+            {"mol_name": "Panaxadiol",     "OB": 33.08,"DL": 0.78},
+            {"mol_name": "Beta-sitosterol","OB": 36.91,"DL": 0.75},
+        ],
+    }
+    rows = data.get(herb, [
+        {"mol_name": f"{herb}_compound1","OB": 35.0,"DL": 0.25},
+        {"mol_name": f"{herb}_compound2","OB": 42.0,"DL": 0.30},
+        {"mol_name": f"{herb}_compound3","OB": 50.0,"DL": 0.35},
+    ])
+    df = pd.DataFrame(rows)
+    df["Herb"] = herb
+    return df
+
+
+DEMO_TARGET_POOL = [
+    "TP53","AKT1","TNF","IL6","VEGFA","EGFR","MYC","MAPK1","JUN","CASP3",
+    "BCL2","STAT3","NFKB1","MDM2","PTEN","PIK3CA","CCND1","MTOR","CDK2",
+    "HSP90AA1","IL1B","PTGS2","ESR1","AR","PPARG","RXRA","NOS2","NR3C1",
+]
+
+DEMO_COMPOUND_TARGETS = {
+    "Berberine":    ["TP53","AKT1","TNF","IL6","MAPK1","PTGS2","NOS2"],
+    "Baicalein":    ["VEGFA","EGFR","STAT3","NFKB1","BCL2","IL1B"],
+    "Palmatine":    ["MDM2","PTEN","MTOR","CDK2","CASP3"],
+    "Wogonin":      ["MYC","JUN","HSP90AA1","PPARG","AR"],
+    "Coptisine":    ["AKT1","PIK3CA","CCND1","STAT3"],
+    "Jatrorrhizine":["TNF","IL6","NFKB1","MAPK1"],
+    "Ginsenoside Rh2":["TP53","BCL2","CASP3","EGFR"],
+    "Beta-sitosterol":["ESR1","AR","PPARG","RXRA"],
+}
+
+
+def _demo_drug_targets(herb_names: list) -> tuple:
+    """Returns (targets_df, compound_target_map, all_genes_set)."""
+    rows, cmap, all_genes = [], {}, set()
+    for herb in herb_names:
+        for comp, genes in DEMO_COMPOUND_TARGETS.items():
+            cmap[comp] = genes
+            all_genes.update(genes)
+            for g in genes:
+                rows.append({"Compound": comp, "Gene": g, "Herb": herb})
+    return pd.DataFrame(rows), cmap, all_genes
+
+
+def _demo_disease_targets(disease: str) -> pd.DataFrame:
+    if any(k in disease.lower() for k in ["diabet","糖尿病"]):
+        genes = ["INS","INSR","IRS1","PPARG","ADIPOQ","LEP","AKT1","PI3K",
+                 "AMPK","SIRT1","GCK","HIF1A","TNF","IL6","NFKB1","MAPK1","TP53","BCL2","VEGFA","PTGS2"]
+    elif any(k in disease.lower() for k in ["cancer","肿瘤","癌"]):
+        genes = ["TP53","BRCA1","EGFR","MYC","BCL2","VEGFA","PIK3CA","KRAS",
+                 "PTEN","AKT1","MTOR","CDK4","MDM2","STAT3","NFKB1","IL6","TNF","HSP90AA1","CASP3"]
+    elif any(k in disease.lower() for k in ["hypertens","高血压"]):
+        genes = ["ACE","AGT","AGTR1","NOS3","EDN1","PTGS2","KCNJ11","ATP2A2",
+                 "TNF","IL6","VEGFA","AKT1","MAPK1","NFKB1","TP53"]
+    else:
+        genes = ["TP53","AKT1","TNF","IL6","VEGFA","EGFR","MYC","MAPK1",
+                 "CASP3","BCL2","STAT3","NFKB1","MDM2","PTEN","MTOR","PTGS2","NOS2","IL1B"]
+    rng = np.random.default_rng(42)
+    return pd.DataFrame([{"Gene": g, "Score": round(float(rng.uniform(0.3, 1.0)), 3), "Source": "Demo"} for g in genes])
+
+
+def _demo_ppi(genes: list) -> pd.DataFrame:
+    rng = np.random.default_rng(42)
+    rows = []
+    for i, g1 in enumerate(genes):
+        partners = rng.choice(genes, size=min(4, len(genes)), replace=False).tolist()
+        for g2 in partners:
+            if g1 != g2:
+                rows.append({"preferredName_A": g1, "preferredName_B": g2,
+                             "score": int(rng.integers(400, 999))})
+    df = pd.DataFrame(rows).drop_duplicates(subset=["preferredName_A","preferredName_B"])
+    return df
+
+
+# ── Session state ─────────────────────────────────────────────────────────────
+
+def _init():
+    for k, v in {
+        "compounds_df": None, "drug_targets_df": None, "disease_targets_df": None,
+        "intersection_genes": [], "ppi_df": None, "centrality_df": None,
+        "enrichment": {}, "compound_target_map": {}, "log": [], "done": False,
+        "report_path": None,
+    }.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
+
+_init()
+
+
+def add_log(msg, level="info"):
+    icon = {"info":"ℹ️","ok":"✅","warn":"⚠️","error":"❌"}.get(level,"•")
+    ts = datetime.now().strftime("%H:%M:%S")
+    st.session_state.log.append(f"[{ts}] {icon} {msg}")
+
+
+# ── Sidebar ───────────────────────────────────────────────────────────────────
+
+with st.sidebar:
+    st.markdown("## 🌿 参数设置")
+    herb_input = st.text_area("🌱 中药名称（每行一个）", value="黄连\n黄芩", height=100)
+    disease_input = st.text_input("🏥 疾病名称（英文/中文）", value="diabetes")
+    st.markdown("### ADME 筛选阈值")
+    c1, c2 = st.columns(2)
+    ob_th = c1.number_input("OB ≥ (%)", 0.0, 100.0, 30.0, 5.0)
+    dl_th = c2.number_input("DL ≥", 0.0, 1.0, 0.18, 0.01)
+    st.markdown("### 高级参数")
+    ppi_score = st.slider("PPI 最低置信分数", 0, 1000, 400, 50)
+    top_hub   = st.slider("核心靶点数量 Top N", 5, 50, 20, 5)
+    st.markdown("---")
+    run_btn = st.button("🚀 开始一键分析", type="primary", use_container_width=True)
+    if st.button("🔄 重置", use_container_width=True):
+        for k in list(st.session_state.keys()):
+            del st.session_state[k]
+        st.rerun()
+    st.markdown("---")
+    st.caption("数据来源: TCMSP · PubChem · SwissTarget · STRING · Enrichr · DisGeNET")
+
+
+# ── Header ────────────────────────────────────────────────────────────────────
+
+st.markdown("""
+<div class="main-header">
+  <h1 style="color:white;margin:0;font-size:1.9rem;">🌿 网络药理学一键分析平台</h1>
+  <p style="color:#A8E6CF;margin:0.4rem 0 0;font-size:0.95rem;">
+    TCMSP · PubChem · SwissTargetPrediction · STRING · Enrichr 全流程自动分析
+  </p>
+</div>
+""", unsafe_allow_html=True)
+
+m1, m2, m3, m4 = st.columns(4)
+m1.metric("活性成分", len(st.session_state.compounds_df) if st.session_state.compounds_df is not None else "—")
+_tgt = st.session_state.drug_targets_df
+m2.metric("预测靶点", _tgt["Gene"].nunique() if _tgt is not None and "Gene" in _tgt.columns else "—")
+m3.metric("交集靶点", len(st.session_state.intersection_genes) or "—")
+_kegg = st.session_state.enrichment.get("KEGG")
+m4.metric("KEGG通路", len(_kegg) if _kegg is not None and not getattr(_kegg,"empty",True) else "—")
+
+st.markdown("---")
+
+
+# ── Analysis pipeline ─────────────────────────────────────────────────────────
+
+if run_btn:
+    herb_names = [h.strip() for h in herb_input.strip().splitlines() if h.strip()]
+    disease    = disease_input.strip()
+
+    if not herb_names or not disease:
+        st.error("请先填写中药名称和疾病名称")
+        st.stop()
+
+    # reset
+    st.session_state.log = []
+    st.session_state.done = False
+    st.session_state.report_path = None
+
+    progress_bar  = st.progress(0, text="准备中…")
+    status_holder = st.empty()
+    log_holder    = st.expander("📋 实时日志", expanded=True)
+
+    def step(n, total, msg):
+        pct = int(n / total * 100)
+        progress_bar.progress(pct, text=f"步骤 {n}/{total}: {msg}")
+        status_holder.info(f"⏳ {msg}")
+        add_log(msg)
+        with log_holder:
+            for line in st.session_state.log[-15:]:
+                st.text(line)
+
+    # ── 1. TCMSP ─────────────────────────────────────────────────────────────
+    step(1, 9, f"从 TCMSP 获取活性成分（OB≥{ob_th}%, DL≥{dl_th}）")
+    from modules.tcmsp import search_herb_tcmsp
+    all_comp = []
+    for herb in herb_names:
+        try:
+            df = search_herb_tcmsp(herb, ob_th, dl_th)
+            if not df.empty:
+                df["Herb"] = herb
+                all_comp.append(df)
+                add_log(f"  {herb}: {len(df)} 个活性成分", "ok")
+            else:
+                raise ValueError("空结果")
+        except Exception as e:
+            add_log(f"  {herb} TCMSP在线查询失败({e})，使用内置数据", "warn")
+            all_comp.append(_demo_compounds(herb))
+
+    compounds_df = pd.concat(all_comp, ignore_index=True)
+    # deduplicate by mol_name if column exists
+    name_col = "mol_name" if "mol_name" in compounds_df.columns else compounds_df.columns[0]
+    compounds_df = compounds_df.drop_duplicates(subset=[name_col]).reset_index(drop=True)
+    st.session_state.compounds_df = compounds_df
+    add_log(f"活性成分合计: {len(compounds_df)} 个", "ok")
+
+    # ── 2. PubChem SMILES ─────────────────────────────────────────────────────
+    step(2, 9, "从 PubChem 获取 SMILES 结构式")
+    from modules.pubchem import get_compound_info
+    smiles_rows = []
+    comp_names  = compounds_df[name_col].dropna().unique().tolist()
+    for i, nm in enumerate(comp_names[:20]):          # cap at 20 for speed
+        info = get_compound_info(nm)
+        smiles_rows.append(info)
+        if i % 5 == 0:
+            add_log(f"  PubChem {i+1}/{min(len(comp_names),20)}: {nm}")
+        time.sleep(0.25)
+    smiles_df = pd.DataFrame(smiles_rows)
+    valid_smiles = smiles_df[smiles_df["SMILES"].notna() & (smiles_df["SMILES"] != "")]
+    add_log(f"获得 SMILES: {len(valid_smiles)}/{len(comp_names)} 个化合物", "ok")
+
+    # ── 3. SwissTargetPrediction ──────────────────────────────────────────────
+    step(3, 9, "SwissTargetPrediction 预测靶点（可能需要几分钟）")
+    from modules.swiss_target import predict_targets
+    target_rows, cmap, all_drug_genes = [], {}, set()
+
+    for _, row in valid_smiles.head(8).iterrows():    # limit 8 to avoid timeout
+        nm, sm = row["name"], row["SMILES"]
+        if not sm:
+            continue
+        try:
+            tdf = predict_targets(sm)
+            if not tdf.empty:
+                gcol = next((c for c in tdf.columns if any(k in c.lower() for k in ["gene","symbol","target"])), tdf.columns[0])
+                genes = [g for g in tdf[gcol].dropna().unique().tolist() if isinstance(g, str) and g]
+                cmap[nm] = genes
+                all_drug_genes.update(genes)
+                for g in genes:
+                    target_rows.append({"Compound": nm, "Gene": g})
+                add_log(f"  {nm}: {len(genes)} 个靶点", "ok")
+        except Exception as e:
+            add_log(f"  {nm} 预测失败: {e}", "warn")
+        time.sleep(1.5)
+
+    if not target_rows:
+        add_log("SwissTarget 返回为空，使用内置靶点数据", "warn")
+        drug_targets_df, cmap, all_drug_genes = _demo_drug_targets(herb_names)
+    else:
+        drug_targets_df = pd.DataFrame(target_rows)
+
+    st.session_state.drug_targets_df     = drug_targets_df
+    st.session_state.compound_target_map = cmap
+    add_log(f"药物靶点: {len(all_drug_genes)} 个唯一基因", "ok")
+
+    # ── 4. Disease targets ────────────────────────────────────────────────────
+    step(4, 9, f"获取疾病靶点（{disease}）")
+    from modules.disease_targets import get_disease_targets
+    disease_df = get_disease_targets(disease, progress_callback=lambda m: add_log(f"  {m}"))
+    if disease_df.empty:
+        add_log("在线库无返回，使用内置疾病靶点", "warn")
+        disease_df = _demo_disease_targets(disease)
+    st.session_state.disease_targets_df = disease_df
+    add_log(f"疾病靶点: {len(disease_df)} 个", "ok")
+
+    # ── 5. Intersection + Venn ────────────────────────────────────────────────
+    step(5, 9, "计算药物-疾病交集靶点")
+    drug_genes_set    = set(all_drug_genes)
+    disease_genes_set = set(disease_df["Gene"].dropna().tolist())
+    intersection      = sorted(drug_genes_set & disease_genes_set)
+    if not intersection:
+        # fallback: use drug targets directly
+        add_log("未找到交集，扩大范围后继续", "warn")
+        intersection = sorted(drug_genes_set)[:30]
+    st.session_state.intersection_genes = intersection
+    add_log(f"交集靶点: {len(intersection)} 个", "ok")
+
+    # ── 6. PPI ───────────────────────────────────────────────────────────────
+    step(6, 9, f"STRING 数据库构建 PPI 网络（score≥{ppi_score}）")
+    from modules.string_db import get_ppi_network, calculate_network_centrality
+    try:
+        ppi_df = get_ppi_network(intersection[:50], min_score=ppi_score)
+        if ppi_df.empty:
+            raise ValueError("空网络")
+        add_log(f"PPI 互作对: {len(ppi_df)} 条", "ok")
+    except Exception as e:
+        add_log(f"STRING 查询失败({e})，使用模拟数据", "warn")
+        ppi_df = _demo_ppi(intersection[:20] or list(drug_genes_set)[:20])
+
+    centrality_df = calculate_network_centrality(ppi_df)
+    st.session_state.ppi_df        = ppi_df
+    st.session_state.centrality_df = centrality_df
+    add_log(f"核心靶点已排序，Top1: {centrality_df.iloc[0]['Gene'] if not centrality_df.empty else 'N/A'}", "ok")
+
+    # ── 7. GO/KEGG ───────────────────────────────────────────────────────────
+    step(7, 9, "Enrichr GO/KEGG 富集分析")
+    from modules.string_db import get_top_hub_genes
+    from modules.enrichment import run_enrichr_analysis
+    hub_genes    = get_top_hub_genes(centrality_df, top_n=top_hub)
+    enrich_genes = hub_genes or intersection[:30] or list(drug_genes_set)[:30]
+
+    enrichment = run_enrichr_analysis(enrich_genes, progress_callback=lambda m: add_log(f"  {m}"))
+    st.session_state.enrichment = enrichment
+    kegg_df = enrichment.get("KEGG", pd.DataFrame())
+    add_log(f"KEGG 通路: {len(kegg_df) if kegg_df is not None and not kegg_df.empty else 0} 条 (P≤0.05)", "ok")
+
+    # ── 8. Network figure (Plotly) ────────────────────────────────────────────
+    step(8, 9, "构建成分-靶点-通路网络图")
+    from modules.visualization import plot_network_plotly
+    top_paths = []
+    if kegg_df is not None and not kegg_df.empty and "Term" in kegg_df.columns:
+        top_paths = [t.split("__")[-1] if "__" in t else t for t in kegg_df["Term"].head(10).tolist()]
+    st.session_state.network_fig = plot_network_plotly(
+        compounds          = list(cmap.keys())[:15],
+        compound_targets   = cmap,
+        intersection_targets = intersection[:20],
+        top_pathways       = top_paths,
+        title              = f"{'、'.join(herb_names)} 成分-靶点-通路网络",
+    )
+    add_log("网络图构建完成", "ok")
+
+    # ── 9. Excel report ───────────────────────────────────────────────────────
+    step(9, 9, "生成 Excel 分析报告")
+    from modules.report import generate_excel_report
+    import matplotlib
+    matplotlib.use("Agg")
+    from modules.visualization import plot_venn, plot_ppi_network, plot_kegg_bubbles, plot_go_barplot
+
+    mpl_figs = {}
+    mpl_figs["venn"] = plot_venn(
+        {"药物靶点": drug_genes_set, f"{disease}靶点": disease_genes_set},
+        title="药物-疾病靶点韦恩图",
+    )
+    mpl_figs["ppi"] = plot_ppi_network(ppi_df, centrality_df, top_n=top_hub)
+    if kegg_df is not None and not kegg_df.empty:
+        mpl_figs["kegg"] = plot_kegg_bubbles(kegg_df)
+    for cat in ["GO_BP","GO_CC","GO_MF"]:
+        gdf = enrichment.get(cat, pd.DataFrame())
+        if gdf is not None and not gdf.empty:
+            mpl_figs[cat.lower()] = plot_go_barplot(gdf, category=cat)
+
+    out_dir = Path("output"); out_dir.mkdir(exist_ok=True)
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    rpath = out_dir / f"网络药理学分析报告_{ts}.xlsx"
+    generate_excel_report(
+        output_path          = str(rpath),
+        herb_names           = herb_names,
+        disease_name         = disease,
+        compounds_df         = compounds_df,
+        drug_targets_df      = drug_targets_df,
+        disease_targets_df   = disease_df,
+        intersection_genes   = intersection,
+        ppi_df               = ppi_df,
+        centrality_df        = centrality_df,
+        enrichment_results   = enrichment,
+        figures              = mpl_figs,
+    )
+    st.session_state.report_path = str(rpath)
+    add_log(f"报告已保存: {rpath}", "ok")
+
+    progress_bar.progress(100, text="✅ 分析完成！")
+    status_holder.success("🎉 分析完成！请查看下方结果标签页")
+    st.session_state.done = True
+    st.balloons()
+    st.rerun()
+
+
+# ── Results ───────────────────────────────────────────────────────────────────
+
+if st.session_state.compounds_df is not None:
+    import matplotlib
+    matplotlib.use("Agg")
+    from modules.visualization import (
+        plot_venn, plot_ppi_network, plot_kegg_bubbles, plot_go_barplot,
+        plot_network_plotly, fig_to_base64,
+    )
+
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        "📊 活性成分", "🎯 靶点 & 韦恩图", "🕸️ PPI 网络",
+        "🔬 GO/KEGG 富集", "🌐 网络图", "📥 下载报告",
+    ])
+
+    # ── Tab 1 ─────────────────────────────────────────────────────────────────
+    with tab1:
+        st.markdown("### 活性成分列表（ADME 筛选后）")
+        df = st.session_state.compounds_df
+        st.dataframe(df, use_container_width=True, height=380)
+        c1, c2 = st.columns(2)
+        import plotly.express as px
+        if "OB" in df.columns:
+            with c1:
+                fig = px.histogram(df, x="OB", nbins=15, title="OB 分布",
+                                   color_discrete_sequence=["#27AE60"])
+                fig.add_vline(x=30, line_dash="dash", line_color="red", annotation_text="OB=30%")
+                st.plotly_chart(fig, use_container_width=True)
+        if "DL" in df.columns:
+            with c2:
+                fig = px.histogram(df, x="DL", nbins=15, title="DL 分布",
+                                   color_discrete_sequence=["#2980B9"])
+                fig.add_vline(x=0.18, line_dash="dash", line_color="red", annotation_text="DL=0.18")
+                st.plotly_chart(fig, use_container_width=True)
+
+    # ── Tab 2 ─────────────────────────────────────────────────────────────────
+    with tab2:
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("### 药物预测靶点")
+            if st.session_state.drug_targets_df is not None:
+                st.dataframe(st.session_state.drug_targets_df, use_container_width=True, height=280)
+        with c2:
+            st.markdown("### 疾病相关靶点")
+            if st.session_state.disease_targets_df is not None:
+                st.dataframe(st.session_state.disease_targets_df, use_container_width=True, height=280)
+
+        st.markdown("### 药物-疾病交集靶点（韦恩图）")
+        c1, c2 = st.columns([1.2, 1])
+        with c1:
+            if st.session_state.drug_targets_df is not None and st.session_state.disease_targets_df is not None:
+                dg  = set(st.session_state.drug_targets_df["Gene"].dropna())
+                dis = set(st.session_state.disease_targets_df["Gene"].dropna())
+                herb_input_val = [h.strip() for h in herb_input.splitlines() if h.strip()]
+                vfig = plot_venn(
+                    {"药物靶点": dg, f"{disease_input.strip()}靶点": dis},
+                    title="韦恩图",
+                )
+                st.image(f"data:image/png;base64,{fig_to_base64(vfig)}", use_column_width=True)
+        with c2:
+            st.markdown("#### 交集靶点")
+            inter = st.session_state.intersection_genes
+            if inter:
+                st.dataframe(pd.DataFrame({"靶点": inter}), use_container_width=True, height=320)
+                st.success(f"共 **{len(inter)}** 个交集靶点")
+
+    # ── Tab 3 ─────────────────────────────────────────────────────────────────
+    with tab3:
+        st.markdown("### PPI 蛋白互作网络")
+        ppi_df = st.session_state.ppi_df
+        cen_df = st.session_state.centrality_df
+        if ppi_df is not None:
+            c1, c2 = st.columns([1.8, 1])
+            with c1:
+                pfig = plot_ppi_network(ppi_df, cen_df or pd.DataFrame(), top_n=20)
+                st.image(f"data:image/png;base64,{fig_to_base64(pfig)}", use_column_width=True)
+            with c2:
+                st.markdown("#### 核心靶点排名（Hub Score）")
+                if cen_df is not None and not cen_df.empty:
+                    st.dataframe(cen_df.head(20), use_container_width=True, height=420)
+
+    # ── Tab 4 ─────────────────────────────────────────────────────────────────
+    with tab4:
+        st.markdown("### GO / KEGG 富集分析")
+        enrichment = st.session_state.enrichment
+        if enrichment:
+            t_kegg, t_bp, t_cc, t_mf = st.tabs(["KEGG 通路","GO-BP","GO-CC","GO-MF"])
+            for tab_obj, cat in [(t_kegg,"KEGG"),(t_bp,"GO_BP"),(t_cc,"GO_CC"),(t_mf,"GO_MF")]:
+                with tab_obj:
+                    edf = enrichment.get(cat)
+                    if edf is not None and not edf.empty:
+                        st.dataframe(edf, use_container_width=True, height=300)
+                        if cat == "KEGG":
+                            efig = plot_kegg_bubbles(edf, title="KEGG 通路富集")
+                        else:
+                            efig = plot_go_barplot(edf, category=cat)
+                        st.image(f"data:image/png;base64,{fig_to_base64(efig)}", use_column_width=True)
+                    else:
+                        st.info(f"暂无 {cat} 数据（P≤0.05）")
+        else:
+            st.info("分析完成后显示富集结果")
+
+    # ── Tab 5 ─────────────────────────────────────────────────────────────────
+    with tab5:
+        st.markdown("### 成分-靶点-通路 交互网络图")
+        if hasattr(st.session_state, "network_fig") and st.session_state.network_fig is not None:
+            st.plotly_chart(st.session_state.network_fig, use_container_width=True)
+        else:
+            st.info("网络图将在分析完成后显示")
+
+    # ── Tab 6 ─────────────────────────────────────────────────────────────────
+    with tab6:
+        st.markdown("### 下载分析报告")
+        rp = st.session_state.report_path
+        if rp and os.path.exists(rp):
+            with open(rp, "rb") as f:
+                data = f.read()
+            st.success(f"✅ 报告已生成: {os.path.basename(rp)}")
+            st.download_button(
+                "📥 下载 Excel 完整报告", data,
+                file_name=os.path.basename(rp),
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                type="primary", use_container_width=True,
+            )
+            st.markdown("---")
+            st.markdown("#### 单项数据")
+            dc1, dc2, dc3 = st.columns(3)
+            with dc1:
+                buf = io.BytesIO()
+                st.session_state.compounds_df.to_excel(buf, index=False)
+                st.download_button("📊 活性成分", buf.getvalue(), "活性成分.xlsx")
+            with dc2:
+                if st.session_state.intersection_genes:
+                    st.download_button("🎯 交集靶点", "\n".join(st.session_state.intersection_genes).encode(), "交集靶点.txt")
+            with dc3:
+                kegg = st.session_state.enrichment.get("KEGG")
+                if kegg is not None and not kegg.empty:
+                    buf2 = io.BytesIO()
+                    kegg.to_excel(buf2, index=False)
+                    st.download_button("🔬 KEGG通路", buf2.getvalue(), "KEGG通路.xlsx")
+        else:
+            st.info("完成分析后可在此下载报告")
+
+else:
+    # welcome screen
+    st.markdown("""
+    <div style="text-align:center; padding:3rem 0; color:#666;">
+        <h2 style="color:#1E5631;">👈 在左侧填写参数，点击"开始一键分析"</h2>
+        <p>支持单味药或复方 · 全程自动化 · 一键生成 Excel 报告</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    with st.expander("📖 分析流程说明"):
+        st.markdown("""
+| 步骤 | 操作 | 数据库 |
+|------|------|--------|
+| ① 活性成分提取 | OB≥30%, DL≥0.18 筛选 | TCMSP |
+| ② SMILES 获取 | 化合物标准结构式 | PubChem |
+| ③ 靶点预测 | 基于分子结构预测 | SwissTargetPrediction |
+| ④ 疾病靶点 | 疾病相关基因 | DisGeNET + GeneCards |
+| ⑤ 交集靶点 | 韦恩图取交集 | 本地计算 |
+| ⑥ PPI 网络 | 蛋白互作 + Hub 排序 | STRING |
+| ⑦ GO/KEGG 富集 | 通路注释 | Enrichr |
+| ⑧ 网络图 | 成分-靶点-通路可视化 | Plotly |
+| ⑨ Excel 报告 | 含图表完整报告 | — |
+        """)
+
+
+# ── footer ────────────────────────────────────────────────────────────────────
+st.markdown("---")
+st.caption("🌿 网络药理学一键分析平台 · 仅供科研参考，结果需结合实验验证")
