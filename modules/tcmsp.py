@@ -10,7 +10,6 @@ import pandas as pd
 import json
 import time
 from pathlib import Path
-from bs4 import BeautifulSoup
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -29,62 +28,74 @@ _ON_CLOUD = os.environ.get("STREAMLIT_SHARING_MODE") == "streamlit" \
 # ── TCMSP ─────────────────────────────────────────────────────────────────────
 
 def _query_tcmsp(herb_name: str) -> pd.DataFrame:
-    """Query TCMSP database (works best on local network)."""
+    """
+    Query TCMSP via its Kendo-Grid JSON endpoint.
+
+    Flow:
+      1. GET tcmsp.php  → extract session token
+      2. GET tcmspsearch.php?qs=herb_all_name&q=<name>  → list of herbs + en_name
+      3. GET tcmspsearch.php?qr=<en_name>&qsr=herb_en_name  → compound data (JSON in page)
+    """
+    import re
+    import json as _json
+
     session = requests.Session()
     session.headers.update(HEADERS)
 
-    for base_url in [
-        "https://www.tcmsp-e.com",
-        "https://old.tcmsp-e.com",
-    ]:
-        try:
-            # First visit the main page to get session cookies
-            session.get(f"{base_url}/tcmsp.php", timeout=10)
+    try:
+        # Step 1 – get session token
+        r = session.get("https://www.tcmsp-e.com/tcmsp.php", timeout=12)
+        tokens = re.findall(r"value=['\"]([a-f0-9]{32})['\"]", r.text)
+        token = tokens[0] if tokens else ""
 
-            # Try JSON API
-            resp = session.post(
-                f"{base_url}/api/getmolecules.php",
-                data={"herb_cn_name": herb_name, "token": ""},
-                timeout=15,
-            )
-            if resp.status_code == 200:
-                try:
-                    data = resp.json()
-                    if isinstance(data, list) and data:
-                        return _normalize(pd.DataFrame(data))
-                except Exception:
-                    pass
+        # Step 2 – search for herb by name to get English name
+        r2 = session.get(
+            "https://www.tcmsp-e.com/tcmspsearch.php",
+            params={"qs": "herb_all_name", "q": herb_name, "token": token},
+            timeout=15,
+        )
+        m = re.search(r"data:\s*(\[(?:[^\[\]]*|\[[^\[\]]*\])*\])", r2.text, re.DOTALL)
+        if not m or len(m.group(1).strip()) <= 2:
+            return pd.DataFrame()
 
-            # Fallback: HTML scraping
-            resp = session.get(
-                f"{base_url}/tcmsp.php",
-                params={"qr": herb_name, "qsr": "herb_cn_name"},
-                timeout=15,
-            )
-            df = _parse_tcmsp_html(resp.text)
-            if not df.empty:
-                return df
+        herbs_list = _json.loads(m.group(1))
+        # Prefer exact Chinese name match
+        herb_info = next((h for h in herbs_list if h.get("herb_cn_name") == herb_name),
+                         herbs_list[0] if herbs_list else None)
+        if not herb_info:
+            return pd.DataFrame()
+        en_name = herb_info.get("herb_en_name", "")
+        if not en_name:
+            return pd.DataFrame()
 
-        except Exception:
-            continue
+        # Step 3 – get compound detail page
+        r3 = session.get(
+            "https://www.tcmsp-e.com/tcmspsearch.php",
+            params={"qr": en_name, "qsr": "herb_en_name", "token": token},
+            timeout=30,
+        )
+        start = r3.text.find('data: [{"')
+        if start == -1:
+            return pd.DataFrame()
+        bracket = r3.text.index("[", start)
+        decoder = _json.JSONDecoder()
+        raw, _ = decoder.raw_decode(r3.text[bracket:])
+        if not isinstance(raw, list) or not raw:
+            return pd.DataFrame()
 
-    return pd.DataFrame()
+        rows = []
+        for c in raw:
+            rows.append({
+                "mol_name": (c.get("molecule_name") or "").strip(),
+                "OB":  float(c.get("ob") or 0),
+                "DL":  float(c.get("dl") or 0),
+                "MW":  float(c.get("mw") or 0),
+                "SMILES": (c.get("smiles") or c.get("SMILES") or "").strip(),
+            })
+        return pd.DataFrame(rows)
 
-
-def _parse_tcmsp_html(html: str) -> pd.DataFrame:
-    """Parse TCMSP HTML table into DataFrame."""
-    soup = BeautifulSoup(html, "lxml")
-    for table in soup.find_all("table"):
-        headers = [th.get_text(strip=True) for th in table.find_all("th")]
-        if any(k in " ".join(headers) for k in ["Molecule", "mol_name", "OB", "DL"]):
-            rows = []
-            for tr in table.find_all("tr")[1:]:
-                tds = [td.get_text(strip=True) for td in tr.find_all("td")]
-                if tds:
-                    rows.append(dict(zip(headers, tds)))
-            if rows:
-                return _normalize(pd.DataFrame(rows))
-    return pd.DataFrame()
+    except Exception:
+        return pd.DataFrame()
 
 
 # ── HERB API ──────────────────────────────────────────────────────────────────
