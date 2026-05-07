@@ -189,6 +189,13 @@ with st.sidebar:
     st.markdown("---")
 
     with st.expander("🎨 出图设置", expanded=False):
+        font_style = st.radio(
+            "中文字体",
+            options=["黑体", "宋体"],
+            index=0,
+            horizontal=True,
+            help="黑体：简洁现代；宋体：正式传统",
+        )
         font_scale = st.select_slider(
             "字体大小",
             options=[0.7, 0.85, 1.0, 1.2, 1.4, 1.6],
@@ -218,6 +225,7 @@ with st.sidebar:
 
     # Pack into cfg dict for passing to visualization functions
     fig_cfg = {
+        "font_style":   font_style,
         "font_scale":   font_scale,
         "dpi":          fig_dpi,
         "fmt":          fig_fmt,
