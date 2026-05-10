@@ -379,24 +379,36 @@ if run_btn:
             for line in st.session_state.log[-15:]:
                 st.text(line)
 
-    # ── 1. TCMSP ─────────────────────────────────────────────────────────────
-    step(1, 9, f"从 TCMSP 获取活性成分（OB≥{ob_th}%, DL≥{dl_th}）")
+    # ── 1. TCMSP（多草药并行）+ 疾病靶点同步预取 ─────────────────────────────
+    step(1, 9, f"并行获取: TCMSP活性成分（{len(herb_names)}味药）+ 疾病靶点预取")
+
+    # 疾病靶点与草药查询完全独立 —— 立刻放进后台线程，和步骤 1-3 同时跑
+    _disease_executor = ThreadPoolExecutor(max_workers=1)
+    _disease_future   = _disease_executor.submit(_cached_disease_targets, disease)
+    add_log(f"  已在后台启动疾病靶点查询: [{disease}]")
+
+    # 多草药并行查询 TCMSP
+    def _fetch_herb(herb: str):
+        df = _cached_herb(herb, ob_th, dl_th)
+        if df.empty:
+            raise ValueError("空结果")
+        df["Herb"] = herb
+        return herb, df
+
     all_comp = []
-    for herb in herb_names:
-        try:
-            df = _cached_herb(herb, ob_th, dl_th)
-            if not df.empty:
-                df["Herb"] = herb
+    with ThreadPoolExecutor(max_workers=min(len(herb_names), 4)) as executor:
+        herb_futures = {executor.submit(_fetch_herb, h): h for h in herb_names}
+        for future in as_completed(herb_futures):
+            herb = herb_futures[future]
+            try:
+                _, df = future.result()
                 all_comp.append(df)
                 add_log(f"  {herb}: {len(df)} 个活性成分", "ok")
-            else:
-                raise ValueError("空结果")
-        except Exception as e:
-            add_log(f"  {herb} TCMSP在线查询失败({e})，使用内置数据", "warn")
-            all_comp.append(_demo_compounds(herb))
+            except Exception as e:
+                add_log(f"  {herb} TCMSP查询失败({e})，使用内置数据", "warn")
+                all_comp.append(_demo_compounds(herb))
 
     compounds_df = pd.concat(all_comp, ignore_index=True)
-    # deduplicate by mol_name if column exists
     name_col = "mol_name" if "mol_name" in compounds_df.columns else compounds_df.columns[0]
     compounds_df = compounds_df.drop_duplicates(subset=[name_col]).reset_index(drop=True)
     st.session_state.compounds_df = compounds_df
@@ -492,13 +504,18 @@ if run_btn:
     st.session_state.compound_target_map = cmap
     add_log(f"药物靶点合计: {len(all_drug_genes)} 个唯一基因（ChEMBL + HERB）", "ok")
 
-    # ── 4. Disease targets ────────────────────────────────────────────────────
-    step(4, 9, f"获取疾病靶点（{disease}）")
-    add_log(f"  查询 Open Targets: [{disease}]...")
-    disease_df = _cached_disease_targets(disease)
-    if disease_df.empty:
-        add_log("在线库无返回，使用内置疾病靶点", "warn")
+    # ── 4. 疾病靶点（收取步骤 1 启动的后台结果）─────────────────────────────
+    step(4, 9, f"收取疾病靶点结果（{disease}）")
+    try:
+        disease_df = _disease_future.result(timeout=60)   # 此时大概率已完成
+        if disease_df.empty:
+            raise ValueError("空结果")
+        add_log(f"  Open Targets 返回 {len(disease_df)} 个靶点", "ok")
+    except Exception as e:
+        add_log(f"  在线库无返回({e})，使用内置疾病靶点", "warn")
         disease_df = _demo_disease_targets(disease)
+    finally:
+        _disease_executor.shutdown(wait=False)
     st.session_state.disease_targets_df = disease_df
     add_log(f"疾病靶点: {len(disease_df)} 个", "ok")
 
