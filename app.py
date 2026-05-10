@@ -317,13 +317,17 @@ with st.sidebar:
         st.rerun()
 
     with st.expander("🗑️ 缓存管理", expanded=False):
-        from modules.cache import cache_clear, cache_size
-        st.caption(f"磁盘缓存条目数: {cache_size()}")
-        if st.button("清除持久化缓存", use_container_width=True):
+        from modules.cache import cache_clear, cache_info
+        _ci = cache_info()
+        if _ci["enabled"]:
+            st.caption(f"📦 已缓存 **{_ci['items']}** 条 · 占用 **{_ci['size_mb']} MB**")
+            st.caption("命中缓存 = 跳过 API 调用，重复分析几乎秒出")
+        else:
+            st.caption("⚠️ 磁盘缓存未启用（diskcache 未安装）")
+        if st.button("🧹 清除全部缓存", use_container_width=True):
             cache_clear()
             st.cache_data.clear()
-            st.success("缓存已清除")
-        st.caption("清除后下次分析将重新调用所有 API")
+            st.success("✅ 缓存已清除，下次分析将重新调用所有 API")
 
     st.markdown("---")
     st.caption("数据来源: TCMSP · PubChem · ChEMBL · STRING · Enrichr · Open Targets · Harmonizome")

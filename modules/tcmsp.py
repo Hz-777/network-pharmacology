@@ -10,6 +10,7 @@ import pandas as pd
 import json
 import time
 from pathlib import Path
+from modules.cache import cache_get, cache_set, make_key
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -197,6 +198,11 @@ def search_herb_tcmsp(herb_name: str, ob_threshold: float = 30.0,
       Local:  TCMSP → HERB API → Built-in
       Cloud:  HERB API → TCMSP → Built-in
     """
+    key = make_key("tcmsp", herb_name, ob_threshold, dl_threshold)
+    cached = cache_get(key)
+    if cached is not None:
+        return cached
+
     sources = (
         [("TCMSP",    _query_tcmsp),
          ("HERB API", _query_herb_api)]
@@ -215,17 +221,18 @@ def search_herb_tcmsp(herb_name: str, ob_threshold: float = 30.0,
         except Exception:
             continue
 
-    # Final fallback
     if df.empty:
         df = _query_builtin(herb_name)
 
     if df.empty:
+        cache_set(key, df, category="compound")
         return df
 
-    # ADME filter
     if "OB" in df.columns:
         df = df[df["OB"] >= ob_threshold]
     if "DL" in df.columns:
         df = df[df["DL"] >= dl_threshold]
 
-    return df.reset_index(drop=True)
+    result = df.reset_index(drop=True)
+    cache_set(key, result, category="compound")
+    return result

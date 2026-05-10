@@ -3,6 +3,7 @@
 import requests
 import pandas as pd
 import io
+from modules.cache import cache_get, cache_set, make_key
 
 STRING_API = "https://string-db.org/api"
 SPECIES_HUMAN = 9606
@@ -16,6 +17,11 @@ def get_ppi_network(genes: list, min_score: int = 400) -> pd.DataFrame:
     """
     if not genes:
         return pd.DataFrame()
+
+    key = make_key("ppi", sorted(genes), min_score)
+    cached = cache_get(key)
+    if cached is not None:
+        return cached
 
     # First map gene names to STRING IDs
     genes_str = "%0d".join(genes)
@@ -56,6 +62,7 @@ def get_ppi_network(genes: list, min_score: int = 400) -> pd.DataFrame:
         resp = requests.post(network_url, data=network_params, timeout=60)
         resp.raise_for_status()
         df = pd.read_csv(io.StringIO(resp.text), sep="\t")
+        cache_set(key, df, category="ppi")
         return df
     except Exception as e:
         raise ConnectionError(f"STRING网络获取失败: {e}")

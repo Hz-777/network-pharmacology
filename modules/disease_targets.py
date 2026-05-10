@@ -9,6 +9,7 @@ Supports both English and Chinese disease names.
 import re
 import requests
 import pandas as pd
+from modules.cache import cache_get, cache_set, make_key
 
 OT_API          = "https://api.platform.opentargets.org/api/v4/graphql"
 HARMONIZOME_API = "https://maayanlab.cloud/Harmonizome/api/1.0"
@@ -232,6 +233,11 @@ def get_disease_targets(disease: str, min_score: float = 0.0,
     Retrieve disease-associated gene targets from Open Targets Platform.
     Accepts English or Chinese disease names.
     """
+    key = make_key("disease_targets", disease, min_score)
+    cached = cache_get(key)
+    if cached is not None:
+        return cached
+
     en_disease = _to_english(disease)
     if en_disease != disease and progress_callback:
         progress_callback(f"中文疾病名转换: {disease} → {en_disease}")
@@ -267,4 +273,6 @@ def get_disease_targets(disease: str, min_score: float = 0.0,
     if min_score > 0 and "Score" in df.columns:
         df = df[df["Score"] >= min_score]
 
-    return df.reset_index(drop=True)
+    result = df.reset_index(drop=True)
+    cache_set(key, result, category="disease")
+    return result
