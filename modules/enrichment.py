@@ -3,8 +3,10 @@
 import requests
 import pandas as pd
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional
 
+from modules.cache import cache_get, cache_set, make_key
 
 ENRICHR_API = "https://maayanlab.cloud/Enrichr"
 
@@ -64,21 +66,46 @@ def enrichr_get_enrichment(user_list_id: str, library: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def _fetch_library(args: tuple) -> tuple[str, pd.DataFrame]:
+    """Fetch one library result (for thread pool use)."""
+    user_list_id, key, library = args
+    return key, enrichr_get_enrichment(user_list_id, library)
+
+
 def run_enrichr_analysis(genes: list, progress_callback=None) -> dict:
     """
     Run full GO+KEGG enrichment via Enrichr.
     Returns dict with keys: GO_BP, GO_CC, GO_MF, KEGG.
+    All 4 library queries run in parallel.
     """
+    cache_key = make_key("enrichr", sorted(genes))
+    cached = cache_get(cache_key)
+    if cached is not None:
+        return cached
+
     results = {}
     if progress_callback:
         progress_callback("提交基因列表到 Enrichr...")
+
     user_list_id = enrichr_submit_genes(genes)
     if not user_list_id:
         return results
+
+    # Allow Enrichr a moment to process the submission before querying
     time.sleep(1)
-    for key, library in ENRICHR_LIBRARIES.items():
-        if progress_callback:
-            progress_callback(f"分析 {key} 通路...")
-        results[key] = enrichr_get_enrichment(user_list_id, library)
-        time.sleep(0.5)
+
+    if progress_callback:
+        progress_callback("并行查询 GO BP / CC / MF + KEGG 通路...")
+
+    tasks = [(user_list_id, key, lib) for key, lib in ENRICHR_LIBRARIES.items()]
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        futures = [executor.submit(_fetch_library, t) for t in tasks]
+        for future in as_completed(futures):
+            try:
+                k, df = future.result()
+                results[k] = df
+            except Exception as e:
+                print(f"Enrichr parallel fetch error: {e}")
+
+    cache_set(cache_key, results)
     return results

@@ -6,9 +6,15 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import os, time, io
-from datetime import datetime
+import os, time, io, yaml
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
+
+_BJT = timezone(timedelta(hours=8))
+
+def _now():
+    return datetime.now(_BJT)
 
 st.set_page_config(
     page_title="网络药理学一键分析平台",
@@ -16,6 +22,64 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# ── 登录认证 ──────────────────────────────────────────────────────────────────
+
+_USERS_FILE = Path(__file__).parent / "users.yaml"
+
+def _secrets_to_dict(obj) -> dict:
+    """递归把 st.secrets 的 AttrDict 转成普通 dict。"""
+    if hasattr(obj, "items"):
+        return {k: _secrets_to_dict(v) for k, v in obj.items()}
+    return obj
+
+def _load_auth_config() -> dict:
+    # 云端优先读 st.secrets（Streamlit Cloud 部署时使用）
+    if "credentials" in st.secrets:
+        return _secrets_to_dict(st.secrets)
+    # 本地开发读 users.yaml
+    with open(_USERS_FILE, encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+try:
+    import streamlit_authenticator as stauth
+
+    _auth_cfg = _load_auth_config()
+    _authenticator = stauth.Authenticate(
+        _auth_cfg["credentials"],
+        _auth_cfg["cookie"]["name"],
+        _auth_cfg["cookie"]["key"],
+        _auth_cfg["cookie"]["expiry_days"],
+    )
+
+    _authenticator.login()
+    _auth_status = st.session_state.get("authentication_status")
+
+    if _auth_status is False:
+        st.error("❌ 用户名或密码错误")
+        st.stop()
+    elif _auth_status is None:
+        st.markdown("""
+        <div style="max-width:420px;margin:6rem auto 0;text-align:center;">
+          <h2 style="color:#1E5631;">🌿 网络药理学分析平台</h2>
+          <p style="color:#666;">请登录以继续使用</p>
+        </div>
+        """, unsafe_allow_html=True)
+        st.stop()
+
+    # 已登录 — 侧边栏显示用户信息和退出按钮
+    _current_user = st.session_state.get("name", "")
+    _current_role = _auth_cfg["credentials"]["usernames"].get(
+        st.session_state.get("username", ""), {}
+    ).get("role", "user")
+
+except FileNotFoundError:
+    st.error("⚠️ 未找到 users.yaml，请先创建用户配置文件")
+    st.code("cp users.yaml.example users.yaml  # 或运行 python3 tools/add_user.py")
+    st.stop()
+except Exception as e:
+    st.error(f"认证模块加载失败: {e}")
+    st.stop()
 
 st.markdown("""
 <style>
@@ -166,13 +230,18 @@ _init()
 
 def add_log(msg, level="info"):
     icon = {"info":"ℹ️","ok":"✅","warn":"⚠️","error":"❌"}.get(level,"•")
-    ts = datetime.now().strftime("%H:%M:%S")
+    ts = _now().strftime("%H:%M:%S")
     st.session_state.log.append(f"[{ts}] {icon} {msg}")
 
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 
 with st.sidebar:
+    # 用户信息 & 退出
+    _role_label = {"admin": "管理员 👑", "user": "用户"}.get(_current_role, _current_role)
+    st.markdown(f"**👤 {_current_user}** · {_role_label}")
+    _authenticator.logout("退出登录", location="sidebar")
+    st.markdown("---")
     st.markdown("## 🌿 参数设置")
     herb_input = st.text_area("🌱 中药名称（每行一个）", value="黄连\n黄芩", height=100)
     disease_input = st.text_input("🏥 疾病名称（英文/中文）", value="diabetes")
@@ -246,6 +315,16 @@ with st.sidebar:
         for k in list(st.session_state.keys()):
             del st.session_state[k]
         st.rerun()
+
+    with st.expander("🗑️ 缓存管理", expanded=False):
+        from modules.cache import cache_clear, cache_size
+        st.caption(f"磁盘缓存条目数: {cache_size()}")
+        if st.button("清除持久化缓存", use_container_width=True):
+            cache_clear()
+            st.cache_data.clear()
+            st.success("缓存已清除")
+        st.caption("清除后下次分析将重新调用所有 API")
+
     st.markdown("---")
     st.caption("数据来源: TCMSP · PubChem · ChEMBL · STRING · Enrichr · Open Targets · Harmonizome")
 
@@ -324,44 +403,63 @@ if run_btn:
     add_log(f"活性成分合计: {len(compounds_df)} 个", "ok")
 
     # ── 2. PubChem SMILES ─────────────────────────────────────────────────────
-    step(2, 9, "从 PubChem 获取 SMILES 结构式")
-    smiles_rows = []
-    comp_names  = compounds_df[name_col].dropna().unique().tolist()
-    for i, nm in enumerate(comp_names[:20]):          # cap at 20 for speed
-        info = _cached_compound_info(nm)
-        smiles_rows.append(info)
-        if i % 5 == 0:
-            add_log(f"  PubChem {i+1}/{min(len(comp_names),20)}: {nm}")
-        time.sleep(0.25)
+    step(2, 9, "从 PubChem 并行获取 SMILES 结构式")
+    comp_names = compounds_df[name_col].dropna().unique().tolist()
+    batch = comp_names[:20]
+    smiles_rows = [None] * len(batch)
+
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        future_map = {executor.submit(_cached_compound_info, nm): i for i, nm in enumerate(batch)}
+        done = 0
+        for future in as_completed(future_map):
+            idx = future_map[future]
+            try:
+                smiles_rows[idx] = future.result()
+            except Exception:
+                smiles_rows[idx] = {"name": batch[idx], "CID": None, "SMILES": None, "formula": None, "MW": None}
+            done += 1
+            if done % 5 == 0 or done == len(batch):
+                add_log(f"  PubChem {done}/{len(batch)} 个化合物已处理")
+
+    smiles_rows = [r for r in smiles_rows if r is not None]
     smiles_df = pd.DataFrame(smiles_rows)
     valid_smiles = smiles_df[smiles_df["SMILES"].notna() & (smiles_df["SMILES"] != "")]
-    add_log(f"获得 SMILES: {len(valid_smiles)}/{len(comp_names)} 个化合物", "ok")
+    add_log(f"获得 SMILES: {len(valid_smiles)}/{len(batch)} 个化合物", "ok")
 
     # ── 3. ChEMBL 靶点查询 ───────────────────────────────────────────────────
-    step(3, 9, "ChEMBL 数据库查询药物靶点")
+    step(3, 9, "ChEMBL 数据库并行查询药物靶点")
     target_rows, cmap, all_drug_genes = [], {}, set()
 
-    # Use all compounds with SMILES, plus try by name for those without
     query_compounds = list(compounds_df[name_col].dropna().unique())[:15]
-    for nm in query_compounds:
+
+    def _fetch_one_target(nm: str):
         sm = ""
         if not valid_smiles.empty and "name" in valid_smiles.columns:
             matched = valid_smiles[valid_smiles["name"] == nm]
             sm = matched["SMILES"].iloc[0] if not matched.empty else ""
-        try:
-            tdf = _cached_predict_targets(sm, nm)
-            if not tdf.empty:
-                genes = tdf["Gene"].dropna().unique().tolist()
-                cmap[nm] = genes
-                all_drug_genes.update(genes)
-                for g in genes:
-                    target_rows.append({"Compound": nm, "Gene": g})
-                add_log(f"  {nm}: {len(genes)} 个靶点", "ok")
-            else:
-                add_log(f"  {nm}: ChEMBL 未收录", "warn")
-        except Exception as e:
-            add_log(f"  {nm} 查询失败: {e}", "warn")
-        time.sleep(0.5)
+        return nm, _cached_predict_targets(sm, nm)
+
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = {executor.submit(_fetch_one_target, nm): nm for nm in query_compounds}
+        chembl_results = {}
+        for future in as_completed(futures):
+            try:
+                nm, tdf = future.result()
+                chembl_results[nm] = tdf
+            except Exception as e:
+                chembl_results[futures[future]] = pd.DataFrame()
+
+    for nm in query_compounds:
+        tdf = chembl_results.get(nm, pd.DataFrame())
+        if not tdf.empty:
+            genes = tdf["Gene"].dropna().unique().tolist()
+            cmap[nm] = genes
+            all_drug_genes.update(genes)
+            for g in genes:
+                target_rows.append({"Compound": nm, "Gene": g})
+            add_log(f"  {nm}: {len(genes)} 个靶点", "ok")
+        else:
+            add_log(f"  {nm}: ChEMBL 未收录", "warn")
 
     if not target_rows:
         add_log("ChEMBL 返回为空，使用内置靶点数据", "warn")
@@ -481,7 +579,7 @@ if run_btn:
     st.session_state.fig_cfg = fig_cfg   # save cfg for display section
 
     out_dir = Path("output"); out_dir.mkdir(exist_ok=True)
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    ts = _now().strftime("%Y%m%d_%H%M%S")
     rpath = out_dir / f"网络药理学分析报告_{ts}.xlsx"
     generate_excel_report(
         output_path          = str(rpath),
@@ -513,7 +611,8 @@ if st.session_state.compounds_df is not None:
     matplotlib.use("Agg")
     from modules.visualization import (
         plot_venn, plot_ppi_network, plot_kegg_bubbles, plot_go_barplot,
-        plot_network_plotly, fig_to_base64, fig_to_bytes, apply_cfg,
+        plot_network_plotly, ppi_to_pyvis_html, network_to_pyvis_html,
+        fig_to_base64, fig_to_bytes, apply_cfg,
     )
 
     # Retrieve saved cfg (falls back to current sidebar values)
@@ -602,31 +701,51 @@ if st.session_state.compounds_df is not None:
                 st.markdown("#### 核心靶点排名（Hub Score）")
                 if cen_df is not None and not cen_df.empty:
                     st.dataframe(cen_df.head(20), use_container_width=True, height=420)
+            st.markdown("---")
+            st.markdown("#### 🖱️ 可拖动 PPI 互作探索图")
+            st.caption("节点可自由拖动；稳定后物理引擎自动关闭，拖动不再弹回")
+            ppi_html = ppi_to_pyvis_html(
+                ppi_df,
+                cen_df if cen_df is not None else pd.DataFrame(),
+                top_n=30,
+                height=600,
+            )
+            import streamlit.components.v1 as components
+            components.html(ppi_html, height=620, scrolling=False)
 
     # ── Tab 4 ─────────────────────────────────────────────────────────────────
     with tab4:
         st.markdown("### GO / KEGG 富集分析")
         enrichment = st.session_state.enrichment
         if enrichment:
+            pval_thresh = st.slider(
+                "P-value 阈值（实时筛选）", 0.001, 0.05, 0.05,
+                step=0.005, format="%.3f",
+                help="拖动滑块动态过滤显著性阈值，图表自动重绘",
+            )
             t_kegg, t_bp, t_cc, t_mf = st.tabs(["KEGG 通路","GO-BP","GO-CC","GO-MF"])
             for tab_obj, cat in [(t_kegg,"KEGG"),(t_bp,"GO_BP"),(t_cc,"GO_CC"),(t_mf,"GO_MF")]:
                 with tab_obj:
-                    edf = enrichment.get(cat)
-                    if edf is not None and not edf.empty:
+                    edf_raw = enrichment.get(cat)
+                    if edf_raw is not None and not edf_raw.empty:
+                        edf = edf_raw[edf_raw["P_value"] <= pval_thresh].copy()
+                        st.caption(f"显示 {len(edf)} / {len(edf_raw)} 条（P≤{pval_thresh:.3f}）")
                         st.dataframe(edf, use_container_width=True, height=300)
-                        if cat == "KEGG":
-                            efig = plot_kegg_bubbles(edf, title="KEGG 通路富集")
+                        if not edf.empty:
+                            if cat == "KEGG":
+                                efig = plot_kegg_bubbles(edf, title="KEGG 通路富集")
+                            else:
+                                efig = plot_go_barplot(edf, category=cat)
+                            st.image(f"data:image/png;base64,{fig_to_base64(efig, dpi=_dpi)}", use_column_width=True)
+                            efig2 = plot_kegg_bubbles(edf, title="KEGG 通路富集") if cat == "KEGG" \
+                                    else plot_go_barplot(edf, category=cat)
+                            st.download_button(
+                                f"⬇ 下载 {cat} 图 (.{_fmt})",
+                                fig_to_bytes(efig2, fmt=_fmt, dpi=_dpi),
+                                file_name=f"{cat.lower()}.{_fmt}", mime=_mime,
+                            )
                         else:
-                            efig = plot_go_barplot(edf, category=cat)
-                        st.image(f"data:image/png;base64,{fig_to_base64(efig, dpi=_dpi)}", use_column_width=True)
-                        # redraw for download (fig_to_base64 closes the figure)
-                        efig2 = plot_kegg_bubbles(edf, title="KEGG 通路富集") if cat == "KEGG" \
-                                else plot_go_barplot(edf, category=cat)
-                        st.download_button(
-                            f"⬇ 下载 {cat} 图 (.{_fmt})",
-                            fig_to_bytes(efig2, fmt=_fmt, dpi=_dpi),
-                            file_name=f"{cat.lower()}.{_fmt}", mime=_mime,
-                        )
+                            st.info(f"当前阈值（P≤{pval_thresh:.3f}）下无显著 {cat} 结果")
                     else:
                         st.info(f"暂无 {cat} 数据（P≤0.05）")
         else:
@@ -637,6 +756,27 @@ if st.session_state.compounds_df is not None:
         st.markdown("### 成分-靶点-通路 交互网络图")
         if hasattr(st.session_state, "network_fig") and st.session_state.network_fig is not None:
             st.plotly_chart(st.session_state.network_fig, use_container_width=True)
+            st.markdown("---")
+            st.markdown("#### 🖱️ 可拖动同心圆探索图")
+            st.caption("节点初始位置为三圈同心布局（成分·靶点·通路），可自由拖动重排")
+            # Reconstruct data for pyvis from session state
+            _ss         = st.session_state
+            _ct_map     = getattr(_ss, "compound_target_map", {}) or {}
+            _comp_list  = list(_ct_map.keys())[:15]
+            _inter_list = list(_ss.intersection_genes) if _ss.intersection_genes else []
+            _pathways: list = []
+            if _ss.enrichment and isinstance(_ss.enrichment, dict):
+                _kdf = _ss.enrichment.get("KEGG")
+                if _kdf is not None and not _kdf.empty:
+                    _pathways = [
+                        (t.split("__")[-1] if "__" in t else t)
+                        for t in _kdf.head(14)["Term"].tolist()
+                    ]
+            net_html = network_to_pyvis_html(
+                _comp_list, _ct_map, _inter_list, _pathways, height=680,
+            )
+            import streamlit.components.v1 as components
+            components.html(net_html, height=700, scrolling=False)
         else:
             st.info("网络图将在分析完成后显示")
 

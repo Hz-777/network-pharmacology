@@ -1,0 +1,36 @@
+# 网络药理学分析平台 — 全局参数配置
+# 修改此文件后重启应用即可生效，无需改动代码
+
+filters:
+  # ADME 筛选默认阈值
+  oral_bioavailability: 30       # OB (%) 最低口服生物利用度
+  drug_likeness: 0.18            # DL 最低类药性
+
+  # ChEMBL 靶点预测过滤
+  chembl_pchembl_threshold: 5.0  # pChEMBL 值 ≥5 等价于亲和力 ≤10 µM
+  max_targets_per_compound: 50   # 每个化合物最多保留的靶点数
+
+  # PPI 网络
+  string_confidence: 400         # STRING 置信分数（0–1000）
+  max_ppi_genes: 50              # 提交给 STRING 的最大基因数
+
+  # 疾病靶点
+  max_disease_genes: 300         # 合并后最大疾病基因数
+
+  # 富集分析
+  enrichr_pvalue: 0.05           # 富集结果 P-value 过滤阈值
+
+pipeline:
+  # 最多分析的化合物数量（PubChem/ChEMBL 步骤）
+  max_compounds_pubchem: 20
+  max_compounds_chembl: 15
+
+  # 并发 API 请求数（过高可能触发限速）
+  pubchem_workers: 5
+  chembl_workers: 3
+
+cache:
+  # 持久化磁盘缓存（data/cache/ 目录）
+  enabled: true
+  ttl_days: 7                    # 缓存有效期（天）
+  max_size_gb: 1.0               # 最大占用磁盘空间
