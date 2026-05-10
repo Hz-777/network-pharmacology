@@ -426,48 +426,59 @@ if run_btn:
     valid_smiles = smiles_df[smiles_df["SMILES"].notna() & (smiles_df["SMILES"] != "")]
     add_log(f"获得 SMILES: {len(valid_smiles)}/{len(batch)} 个化合物", "ok")
 
-    # ── 3. ChEMBL 靶点查询 ───────────────────────────────────────────────────
-    step(3, 9, "ChEMBL 数据库并行查询药物靶点")
+    # ── 3. 多数据库靶点查询（ChEMBL + HERB 并行）────────────────────────────
+    step(3, 9, "ChEMBL + HERB 双库并行查询药物靶点")
     target_rows, cmap, all_drug_genes = [], {}, set()
 
     query_compounds = list(compounds_df[name_col].dropna().unique())[:15]
+    from modules.herb_targets import get_herb_targets
 
     def _fetch_one_target(nm: str):
         sm = ""
         if not valid_smiles.empty and "name" in valid_smiles.columns:
             matched = valid_smiles[valid_smiles["name"] == nm]
             sm = matched["SMILES"].iloc[0] if not matched.empty else ""
-        return nm, _cached_predict_targets(sm, nm)
+        chembl_df = _cached_predict_targets(sm, nm)
+        herb_df   = get_herb_targets(nm)
+        return nm, chembl_df, herb_df
 
     with ThreadPoolExecutor(max_workers=3) as executor:
         futures = {executor.submit(_fetch_one_target, nm): nm for nm in query_compounds}
-        chembl_results = {}
+        fetch_results = {}
         for future in as_completed(futures):
             try:
-                nm, tdf = future.result()
-                chembl_results[nm] = tdf
-            except Exception as e:
-                chembl_results[futures[future]] = pd.DataFrame()
+                nm, chembl_df, herb_df = future.result()
+                fetch_results[nm] = (chembl_df, herb_df)
+            except Exception:
+                fetch_results[futures[future]] = (pd.DataFrame(), pd.DataFrame())
 
     for nm in query_compounds:
-        tdf = chembl_results.get(nm, pd.DataFrame())
-        if not tdf.empty:
-            genes = tdf["Gene"].dropna().unique().tolist()
+        chembl_df, herb_df = fetch_results.get(nm, (pd.DataFrame(), pd.DataFrame()))
+
+        genes_chembl = chembl_df["Gene"].dropna().unique().tolist() if not chembl_df.empty else []
+        genes_herb   = herb_df["Gene"].dropna().unique().tolist()   if not herb_df.empty   else []
+        genes = sorted(set(genes_chembl) | set(genes_herb))
+
+        if genes:
             cmap[nm] = genes
             all_drug_genes.update(genes)
-            for g in genes:
-                target_rows.append({"Compound": nm, "Gene": g})
-            add_log(f"  {nm}: {len(genes)} 个靶点", "ok")
+            for g in genes_chembl:
+                target_rows.append({"Compound": nm, "Gene": g, "Source": "ChEMBL"})
+            for g in genes_herb:
+                if g not in set(genes_chembl):
+                    target_rows.append({"Compound": nm, "Gene": g, "Source": "HERB"})
+            src_info = []
+            if genes_chembl: src_info.append(f"ChEMBL {len(genes_chembl)}")
+            if genes_herb:   src_info.append(f"HERB {len(genes_herb)}")
+            add_log(f"  {nm}: {len(genes)} 个靶点（{'，'.join(src_info)}）", "ok")
         else:
-            add_log(f"  {nm}: ChEMBL 未收录", "warn")
+            add_log(f"  {nm}: 两库均未收录", "warn")
 
     if not target_rows:
-        add_log("ChEMBL 返回为空，使用内置靶点数据", "warn")
+        add_log("双库均无结果，使用内置靶点数据", "warn")
         drug_targets_df, cmap, all_drug_genes = _demo_drug_targets(herb_names)
-        # Sync compounds_df so the compounds tab shows the same names that have targets.
         demo_comp_names = list(DEMO_COMPOUND_TARGETS.keys())
         if compounds_df[name_col].isin(demo_comp_names).sum() == 0:
-            # Replace placeholder compounds with the demo ones
             sync_rows = []
             for cn in demo_comp_names:
                 sync_rows.append({"mol_name": cn, "OB": 36.0, "DL": 0.30, "Herb": herb_names[0]})
@@ -479,7 +490,7 @@ if run_btn:
 
     st.session_state.drug_targets_df     = drug_targets_df
     st.session_state.compound_target_map = cmap
-    add_log(f"药物靶点: {len(all_drug_genes)} 个唯一基因", "ok")
+    add_log(f"药物靶点合计: {len(all_drug_genes)} 个唯一基因（ChEMBL + HERB）", "ok")
 
     # ── 4. Disease targets ────────────────────────────────────────────────────
     step(4, 9, f"获取疾病靶点（{disease}）")
