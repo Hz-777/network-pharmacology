@@ -7,7 +7,10 @@ Each palette provides consistent colors across Venn / PPI / KEGG / GO / Network.
 import pandas as pd
 import numpy as np
 import matplotlib
-matplotlib.use("Agg")
+try:
+    matplotlib.use("Agg")
+except Exception:
+    pass
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.cm as cm
@@ -20,7 +23,6 @@ import io, base64
 
 # ── Font setup ────────────────────────────────────────────────────────────────
 import matplotlib.font_manager as fm
-fm.fontManager.__init__()
 _avail = {f.name for f in fm.fontManager.ttflist}
 
 _HEITI  = ["SimHei","STHeiti","Heiti TC","Microsoft YaHei",
@@ -231,15 +233,21 @@ def plot_ppi_network(
         ax.axis("off")
         return fig
 
-    # Compact layout: spring with small k keeps nodes close together
+    # ── Layout ───────────────────────────────────────────────────────────────
     n_nodes = len(G.nodes)
-    if n_nodes <= 30:
-        pos = nx.kamada_kawai_layout(G, scale=1.0)
-    else:
-        pos = nx.spring_layout(G,
-                               k=0.9 / np.sqrt(n_nodes),
-                               seed=42, iterations=120)
+    k_val   = max(0.55, 1.6 / np.sqrt(n_nodes))   # tighter k → more compact
+    pos     = nx.spring_layout(G, k=k_val, seed=42, iterations=200)
 
+    # Normalise to a fixed [-1, 1] bounding box so the graph always fills the axes
+    xs = [p[0] for p in pos.values()]
+    ys = [p[1] for p in pos.values()]
+    cx, cy   = (max(xs)+min(xs))/2, (max(ys)+min(ys))/2
+    spread   = max(max(xs)-min(xs), max(ys)-min(ys), 1e-6) / 1.6
+    pos      = {n: ((p[0]-cx)/spread, (p[1]-cy)/spread) for n, p in pos.items()}
+
+    # After normalisation the data range is ≈ ±1.
+    # label_dy: how far above the node centre to put the text in data units.
+    # We derive it from node size so large hubs get more clearance.
     hub_set = (set(centrality_df.head(top_n)["Gene"].tolist())
                if centrality_df is not None and not centrality_df.empty else set())
     degree  = dict(G.degree())
@@ -249,7 +257,7 @@ def plot_ppi_network(
 
     cmap_ppi    = pal["ppi"]
     node_colors = [cmap_ppi(v * 0.85 + 0.05) for v in norm_degree]
-    node_sizes  = [300 + degree.get(n, 1) * 160 for n in node_list]
+    node_sizes  = [260 + degree.get(n, 1) * 140 for n in node_list]
 
     if scr:
         score_map = {}
@@ -257,22 +265,22 @@ def plot_ppi_network(
             s = float(row[scr]) / 1000.0
             score_map[(row[src], row[tgt])] = s
             score_map[(row[tgt], row[src])] = s
-        edge_w = [max(0.8, score_map.get(e, 0.5) * 3.0)   for e in G.edges]
-        edge_a = [max(0.40, score_map.get(e, 0.5) * 0.75) for e in G.edges]
+        edge_w = [max(0.8, score_map.get(e, 0.5) * 2.5)   for e in G.edges]
+        edge_a = [max(0.45, score_map.get(e, 0.5) * 0.80) for e in G.edges]
     else:
-        edge_w = [1.2] * len(G.edges)
-        edge_a = [0.50] * len(G.edges)
+        edge_w = [1.4] * len(G.edges)
+        edge_a = [0.55] * len(G.edges)
 
     fig, ax = plt.subplots(figsize=(13, 11), facecolor="white")
 
-    # Edges
+    # Edges — drawn first so nodes sit on top
     for idx, (u, v) in enumerate(G.edges):
         ax.plot([pos[u][0], pos[v][0]], [pos[u][1], pos[v][1]],
                 color=pal["edge"], linewidth=edge_w[idx],
                 alpha=edge_a[idx], solid_capstyle="round", zorder=1)
 
     # Nodes
-    sc = ax.scatter(
+    ax.scatter(
         [pos[n][0] for n in node_list],
         [pos[n][1] for n in node_list],
         s=node_sizes, color=node_colors,
@@ -280,30 +288,33 @@ def plot_ppi_network(
         zorder=3, alpha=0.93,
     )
 
-    # Labels: name placed ABOVE the circle using offset in points
+    # ── Labels above each node using data-space offset ────────────────────────
+    # After normalisation the full data span is ≈ 2.0 units (−1 … +1).
+    # node visual radius (data units) ≈ sqrt(s / π) / 72 * (2/fig_height_in_inches)
+    # We approximate a simpler per-node offset proportional to sqrt(node_size).
+    FIG_H_PTS = 11 * 72          # figure height in points
+    DATA_SPAN = 2.0              # normalised y span
+    pts_per_data = FIG_H_PTS / DATA_SPAN   # ≈ 396 pts / data unit
+
     labeled = set(sorted(node_list,
                          key=lambda n: degree.get(n, 0), reverse=True)
-                  [:min(top_n, 16)])
+                  [:min(top_n, n_nodes)])
     for n in labeled:
-        x, y   = pos[n]
-        idx_n  = node_list.index(n)
-        is_hub = n in hub_set
-        ns     = node_sizes[idx_n]
-        # offset = circle edge radius in pts + 3 pt gap
-        pt_offset = np.sqrt(ns) / 2.0 + 3
-        ax.annotate(
-            n,
-            xy=(x, y),
-            xytext=(0, pt_offset),
-            textcoords="offset points",
+        x, y    = pos[n]
+        idx_n   = node_list.index(n)
+        is_hub  = n in hub_set
+        ns      = node_sizes[idx_n]
+        # circle radius in points: sqrt(area/π); add 4 pt gap
+        r_pts   = np.sqrt(ns / np.pi) + 4
+        dy      = r_pts / pts_per_data   # convert to data units
+        ax.text(
+            x, y + dy, n,
             ha="center", va="bottom",
-            fontsize=9.0 if is_hub else 7.5,
+            fontsize=9.5 if is_hub else 8.0,
             fontweight="bold" if is_hub else "normal",
             color="#1C2833",
             zorder=5,
-            annotation_clip=False,
-            arrowprops=None,
-            path_effects=[pe.withStroke(linewidth=2.0, foreground="white")],
+            path_effects=[pe.withStroke(linewidth=2.2, foreground="white")],
         )
 
     # Colorbar
@@ -320,6 +331,9 @@ def plot_ppi_network(
               fontsize=10, frameon=True, framealpha=0.9,
               edgecolor="#DDDDDD", fancybox=True)
 
+    # Constrain axes so nodes fill the plot — leave a small margin for labels
+    ax.set_xlim(-1.15, 1.15)
+    ax.set_ylim(-1.15, 1.25)   # extra top margin for labels above top nodes
     ax.set_title(title, fontsize=17, fontweight="bold", color="#1C2833", pad=16)
     ax.axis("off")
     fig.tight_layout(pad=1.5)
@@ -677,6 +691,196 @@ def _hex_to_rgb(hex_color: str) -> str:
     """Convert #RRGGBB to 'R,G,B' string for rgba()."""
     h = hex_color.lstrip("#")
     return ",".join(str(int(h[i:i+2], 16)) for i in (0, 2, 4))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 6. PYVIS INTERACTIVE NETWORKS
+# ─────────────────────────────────────────────────────────────────────────────
+
+def ppi_to_pyvis_html(
+    ppi_df: pd.DataFrame,
+    centrality_df: pd.DataFrame,
+    top_n: int = 30,
+    height: int = 600,
+) -> str:
+    """
+    Build a draggable Pyvis PPI network and return the HTML string.
+    Nodes are colored by hub score; labels sit above each node.
+    """
+    try:
+        from pyvis.network import Network
+    except ImportError:
+        return "<p style='color:red'>请安装 pyvis: pip install pyvis</p>"
+
+    if ppi_df is None or ppi_df.empty:
+        return "<p>无 PPI 数据</p>"
+
+    pal   = _get_pal()
+    cmap  = pal["ppi"]
+    cols  = ppi_df.columns.tolist()
+    src   = next((c for c in cols if "preferredName_A" in c), cols[0])
+    tgt   = next((c for c in cols if "preferredName_B" in c), cols[1])
+    scr   = next((c for c in cols if "score" in c.lower()), None)
+
+    G = nx.from_pandas_edgelist(ppi_df, source=src, target=tgt)
+
+    # Trim to top hubs + their neighbours
+    if centrality_df is not None and not centrality_df.empty and len(G.nodes) > top_n:
+        hubs = centrality_df.head(top_n)["Gene"].tolist()
+        keep = set(hubs)
+        for g in hubs:
+            if g in G:
+                keep.update(list(G.neighbors(g))[:3])
+        G = G.subgraph(list(keep)).copy()
+
+    if len(G.nodes) == 0:
+        return "<p>网络为空</p>"
+
+    hub_set = set(centrality_df.head(top_n)["Gene"].tolist()) \
+              if centrality_df is not None and not centrality_df.empty else set()
+    degree  = dict(G.degree())
+    max_deg = max(degree.values()) if degree else 1
+
+    def _rgba(v: float) -> str:
+        r, g, b, _ = cmap(v * 0.85 + 0.05)
+        return f"rgba({int(r*255)},{int(g*255)},{int(b*255)},0.92)"
+
+    nt = Network(height=f"{height}px", width="100%", bgcolor="white",
+                 font_color="#1C2833", directed=False)
+    nt.toggle_physics(True)
+    nt.set_options("""{
+      "physics": {
+        "barnesHut": {"gravitationalConstant": -8000, "springLength": 120, "springConstant": 0.04},
+        "stabilization": {"iterations": 150}
+      },
+      "nodes": {"font": {"size": 13, "vadjust": -28}},
+      "edges": {"color": {"color": "#A0AEC0"}, "width": 1.2, "smooth": {"type": "continuous"}}
+    }""")
+
+    for node in G.nodes:
+        d     = degree.get(node, 1)
+        v     = d / max_deg
+        color = _rgba(v)
+        size  = 14 + int(v * 22)
+        is_hub = node in hub_set
+        nt.add_node(
+            node, label=node,
+            color=color, size=size,
+            font={"size": 14 if is_hub else 12, "bold": is_hub},
+            title=f"<b>{node}</b><br>连接度: {d}",
+            shape="dot",
+        )
+
+    score_map = {}
+    if scr:
+        for _, row in ppi_df.iterrows():
+            s = float(row[scr]) / 1000.0
+            score_map[(row[src], row[tgt])] = s
+
+    for u, v in G.edges:
+        s = score_map.get((u, v), score_map.get((v, u), 0.5))
+        nt.add_edge(u, v, value=max(0.5, s * 3), title=f"score: {s:.3f}")
+
+    # Freeze after stabilization via injected JS
+    freeze_js = """
+<script>
+network.on("stabilizationIterationsDone", function () {
+  network.setOptions({ physics: { enabled: false } });
+});
+</script>
+"""
+    html = nt.generate_html()
+    html = html.replace("</body>", freeze_js + "</body>")
+    return html
+
+
+def network_to_pyvis_html(
+    compounds: list,
+    compound_targets: dict,
+    intersection_targets: list,
+    top_pathways: list,
+    height: int = 680,
+) -> str:
+    """
+    Build a draggable Pyvis compound-target-pathway network.
+    Initial positions follow the concentric ring layout; nodes can then be dragged.
+    """
+    try:
+        from pyvis.network import Network
+    except ImportError:
+        return "<p style='color:red'>请安装 pyvis: pip install pyvis</p>"
+
+    pal = _get_pal()
+    net = pal["net"]
+
+    G          = nx.Graph()
+    node_types = {}
+
+    for comp in compounds:
+        G.add_node(comp); node_types[comp] = "compound"
+        for t in compound_targets.get(comp, []):
+            if t in intersection_targets:
+                G.add_node(t); node_types[t] = "target"
+                G.add_edge(comp, t)
+
+    path_nodes = []
+    for path in top_pathways[:14]:
+        short = path[:42]
+        path_nodes.append(short)
+        G.add_node(short); node_types[short] = "pathway"
+        for t in intersection_targets[:12]:
+            if t in G.nodes:
+                G.add_edge(t, short)
+
+    if len(G.nodes) == 0:
+        return "<p>无网络数据</p>"
+
+    comp_nodes   = [n for n, t in node_types.items() if t == "compound"]
+    target_nodes = [n for n, t in node_types.items() if t == "target"]
+    pw_nodes     = [n for n, t in node_types.items() if t == "pathway"]
+    pos = _concentric_pos(comp_nodes, target_nodes, pw_nodes)
+
+    SCALE = 200  # data units → Pyvis pixels
+
+    node_cfg = {
+        "compound": {"color": net["compound"], "size": 22, "shape": "dot",    "label_size": 13},
+        "target":   {"color": net["target"],   "size": 16, "shape": "dot",    "label_size": 11},
+        "pathway":  {"color": net["pathway"],  "size": 18, "shape": "diamond","label_size": 10},
+    }
+    type_label = {"compound":"活性成分","target":"交集靶点","pathway":"KEGG通路"}
+
+    nt = Network(height=f"{height}px", width="100%", bgcolor="white",
+                 font_color="#1C2833", directed=False)
+    nt.toggle_physics(False)   # positions are preset; allow drag without physics pull
+    nt.set_options("""{
+      "interaction": {"dragNodes": true, "hover": true},
+      "nodes": {"font": {"size": 11, "vadjust": -22}},
+      "edges": {"color": {"color": "#CBD5E0"}, "width": 1.0,
+                "smooth": {"type": "continuous"}}
+    }""")
+
+    for node in G.nodes:
+        ntype = node_types.get(node, "target")
+        cfg   = node_cfg[ntype]
+        x, y  = pos.get(node, (0.0, 0.0))
+        nt.add_node(
+            node, label=node[:28],
+            color=cfg["color"], size=cfg["size"], shape=cfg["shape"],
+            x=x * SCALE, y=-y * SCALE,   # flip y: vis.js y grows downward
+            font={"size": cfg["label_size"]},
+            title=f"<b>{node}</b><br>类型: {type_label[ntype]}<br>连接数: {G.degree(node)}",
+            fixed=False,
+        )
+
+    for u, v in G.edges:
+        tu = node_types.get(u, "")
+        tv = node_types.get(v, "")
+        color = f"rgba({_hex_to_rgb(net['compound'])},0.30)" \
+                if "compound" in (tu, tv) \
+                else f"rgba({_hex_to_rgb(net['target'])},0.25)"
+        nt.add_edge(u, v, color=color)
+
+    return nt.generate_html()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
