@@ -34,12 +34,14 @@ def _secrets_to_dict(obj) -> dict:
     return obj
 
 def _load_auth_config() -> dict:
-    # 云端优先读 st.secrets（Streamlit Cloud 部署时使用）
+    # 优先读 users.yaml（本地 + 云端均适用，提交到 git 后云端自动同步）
+    if _USERS_FILE.exists():
+        with open(_USERS_FILE, encoding="utf-8") as f:
+            return yaml.safe_load(f)
+    # 降级：从 Streamlit Secrets 读（仅当 users.yaml 不存在时）
     if "credentials" in st.secrets:
         return _secrets_to_dict(st.secrets)
-    # 本地开发读 users.yaml
-    with open(_USERS_FILE, encoding="utf-8") as f:
-        return yaml.safe_load(f)
+    raise FileNotFoundError("users.yaml")
 
 try:
     import streamlit_authenticator as stauth
@@ -220,7 +222,7 @@ def _init():
         "compounds_df": None, "drug_targets_df": None, "disease_targets_df": None,
         "intersection_genes": [], "ppi_df": None, "centrality_df": None,
         "enrichment": {}, "compound_target_map": {}, "log": [], "done": False,
-        "report_path": None,
+        "report_path": None, "smiles_df": None, "docking_scores": None,
     }.items():
         if k not in st.session_state:
             st.session_state[k] = v
@@ -254,6 +256,14 @@ with st.sidebar:
     st.markdown("### 高级参数")
     ppi_score = st.slider("PPI 最低置信分数", 0, 1000, 400, 50)
     top_hub   = st.slider("核心靶点数量 Top N", 5, 50, 20, 5)
+
+    st.markdown("---")
+    enable_docking = st.checkbox(
+        "💊 启用分子对接（可选）",
+        value=False,
+        help="勾选后分析完成可在「分子对接」Tab 中对关键靶蛋白进行虚拟筛选。\n"
+             "对接依赖 CB-Dock2 在线服务，耗时较长，默认关闭。",
+    )
 
     st.markdown("---")
 
@@ -441,6 +451,7 @@ if run_btn:
     smiles_df = pd.DataFrame(smiles_rows)
     valid_smiles = smiles_df[smiles_df["SMILES"].notna() & (smiles_df["SMILES"] != "")]
     add_log(f"获得 SMILES: {len(valid_smiles)}/{len(batch)} 个化合物", "ok")
+    st.session_state.smiles_df = valid_smiles
 
     # ── 3. 多数据库靶点查询（ChEMBL + HERB 并行）────────────────────────────
     step(3, 9, "ChEMBL + HERB 双库并行查询药物靶点")
@@ -654,9 +665,9 @@ if st.session_state.compounds_df is not None:
     _dpi = _cfg.get("dpi", 180)
     _mime = {"png": "image/png", "pdf": "application/pdf", "svg": "image/svg+xml"}[_fmt]
 
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
         "📊 活性成分", "🎯 靶点 & 韦恩图", "🕸️ PPI 网络",
-        "🔬 GO/KEGG 富集", "🌐 网络图", "📥 下载报告",
+        "🔬 GO/KEGG 富集", "🌐 网络图", "📥 下载报告", "💊 分子对接",
     ])
 
     # ── Tab 1 ─────────────────────────────────────────────────────────────────
@@ -844,6 +855,178 @@ if st.session_state.compounds_df is not None:
                     st.download_button("🔬 KEGG通路", buf2.getvalue(), "KEGG通路.xlsx")
         else:
             st.info("完成分析后可在此下载报告")
+
+    # ── Tab 7: 分子对接 ───────────────────────────────────────────────────────
+    with tab7:
+        st.markdown("### 💊 分子对接（Molecular Docking）")
+
+        if not enable_docking:
+            st.info(
+                "**分子对接功能未启用。**\n\n"
+                "如需使用，请在左侧边栏勾选 **「💊 启用分子对接（可选）」**，"
+                "完成网药分析后再来此 Tab 进行虚拟筛选。\n\n"
+                "网药分析（步骤 1~9）可独立完成，无需启用此功能。"
+            )
+        else:
+            st.markdown(
+                "基于 **CB-Dock2** 在线服务，对活性化合物与关键靶蛋白进行自动对接，"
+                "输出结合能热图。结合能越负（绝对值越大）表示结合亲和力越强。"
+            )
+
+            from modules.docking import (
+                fetch_pdb_batch, run_docking_matrix,
+                plot_docking_heatmap, check_cbdock2_status,
+            )
+
+            # ── 服务状态检查 ──────────────────────────────────────────────────
+            with st.expander("🔗 CB-Dock2 服务状态", expanded=False):
+                if st.button("检测 CB-Dock2 是否可用"):
+                    with st.spinner("检测中..."):
+                        status = check_cbdock2_status()
+                    if status["available"]:
+                        st.success(f"✅ CB-Dock2 可用（{status['label']}）: {status['url']}")
+                    else:
+                        st.error("❌ CB-Dock2 暂不可用（主站和备用IP均无响应）。对接功能需等待服务恢复。")
+
+            # ── 参数选择 ──────────────────────────────────────────────────────
+            _smiles_df   = st.session_state.get("smiles_df")
+            _inter_genes = st.session_state.get("intersection_genes", [])
+            _cent_df     = st.session_state.get("centrality_df")
+
+            if _smiles_df is None or _smiles_df.empty:
+                st.info("请先完成分析流程（步骤1~6），获得化合物 SMILES 后再进行分子对接。")
+            else:
+                col_d1, col_d2 = st.columns(2)
+
+                with col_d1:
+                    st.markdown("**① 选择化合物**")
+                    avail_comps = _smiles_df[_smiles_df["SMILES"].notna()].copy()
+                    comp_options = avail_comps["name"].dropna().unique().tolist()
+                    selected_comps = st.multiselect(
+                        "选择参与对接的化合物（建议 ≤5 个）",
+                        options=comp_options,
+                        default=comp_options[:3] if len(comp_options) >= 3 else comp_options,
+                        key="dock_comp_sel",
+                    )
+
+                with col_d2:
+                    st.markdown("**② 选择靶蛋白**")
+                    if _cent_df is not None and not _cent_df.empty:
+                        suggested_genes = _cent_df.head(10)["Gene"].tolist()
+                    elif _inter_genes:
+                        suggested_genes = list(_inter_genes)[:10]
+                    else:
+                        suggested_genes = []
+
+                    target_mode = st.radio(
+                        "靶蛋白来源",
+                        ["从 RCSB 自动获取（按 Hub 基因）", "手动上传 PDB 文件"],
+                        key="dock_target_mode",
+                    )
+
+                    if target_mode == "从 RCSB 自动获取（按 Hub 基因）":
+                        selected_genes = st.multiselect(
+                            "选择靶基因（将自动从 RCSB PDB 下载结构）",
+                            options=suggested_genes + [g for g in _inter_genes if g not in suggested_genes],
+                            default=suggested_genes[:3] if len(suggested_genes) >= 3 else suggested_genes,
+                            key="dock_gene_sel",
+                        )
+                        uploaded_pdbs = {}
+                    else:
+                        uploaded_files = st.file_uploader(
+                            "上传 PDB 文件（可多选）",
+                            type=["pdb"],
+                            accept_multiple_files=True,
+                            key="dock_pdb_upload",
+                        )
+                        uploaded_pdbs = {}
+                        selected_genes = []
+                        for uf in (uploaded_files or []):
+                            gene_label = uf.name.replace(".pdb", "")
+                            uploaded_pdbs[gene_label] = uf.read().decode("utf-8", errors="replace")
+                            selected_genes.append(gene_label)
+
+                st.markdown("---")
+
+                if st.button("🚀 开始分子对接", type="primary",
+                             disabled=not selected_comps or not selected_genes,
+                             key="dock_run_btn"):
+                    dock_log = st.empty()
+                    dock_status = []
+
+                    def dock_cb(msg):
+                        dock_status.append(msg)
+                        dock_log.text("\n".join(dock_status[-8:]))
+
+                    comp_inputs = []
+                    for cn in selected_comps:
+                        row = avail_comps[avail_comps["name"] == cn]
+                        if not row.empty:
+                            comp_inputs.append({"name": cn, "SMILES": row["SMILES"].iloc[0]})
+
+                    dock_cb("正在从 RCSB 获取靶蛋白结构...")
+                    if target_mode == "从 RCSB 自动获取（按 Hub 基因）":
+                        with st.spinner(f"下载 {len(selected_genes)} 个蛋白结构..."):
+                            pdb_results = fetch_pdb_batch(
+                                selected_genes, max_workers=3, progress_callback=dock_cb
+                            )
+                    else:
+                        pdb_results = {g: ("uploaded", c) for g, c in uploaded_pdbs.items()}
+
+                    target_inputs = []
+                    for gene in selected_genes:
+                        result = pdb_results.get(gene)
+                        if result:
+                            pdb_id, pdb_content = result
+                            target_inputs.append({"gene": gene, "pdb_id": pdb_id, "pdb_content": pdb_content})
+                            dock_cb(f"✅ {gene}: PDB {pdb_id}")
+                        else:
+                            dock_cb(f"⚠️ {gene}: 未找到 PDB 结构，跳过")
+
+                    if not target_inputs:
+                        st.error("未能获取任何靶蛋白结构，请检查网络连接或手动上传 PDB 文件。")
+                    elif not comp_inputs:
+                        st.error("未找到所选化合物的 SMILES，请重新运行主分析流程。")
+                    else:
+                        dock_cb(f"\n开始对接：{len(comp_inputs)} 个化合物 × {len(target_inputs)} 个蛋白...")
+                        with st.spinner("对接计算中，请耐心等待..."):
+                            try:
+                                scores_df = run_docking_matrix(
+                                    comp_inputs, target_inputs, progress_callback=dock_cb
+                                )
+                                st.session_state.docking_scores = scores_df
+                            except Exception as e:
+                                st.error(f"对接失败: {e}")
+                                scores_df = pd.DataFrame()
+                        dock_log.empty()
+
+                # ── 显示结果 ──────────────────────────────────────────────────
+                _scores = st.session_state.get("docking_scores")
+                if _scores is not None and not _scores.empty:
+                    st.markdown("#### 对接结果热图")
+                    st.caption("结合能（kcal/mol）：数值越负代表结合越强")
+                    heatmap_png = plot_docking_heatmap(_scores)
+                    st.image(heatmap_png, use_container_width=True)
+
+                    st.markdown("#### 原始数据")
+                    st.dataframe(_scores.style.format("{:.2f}"), use_container_width=True)
+
+                    buf_d = io.BytesIO()
+                    _scores.to_excel(buf_d, index=True)
+                    st.download_button(
+                        "📥 下载对接评分表（Excel）",
+                        buf_d.getvalue(),
+                        file_name="分子对接评分.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    )
+                elif _scores is not None and _scores.empty:
+                    st.warning(
+                        "对接结果为空。可能原因：\n"
+                        "- CB-Dock2 服务暂时不可用\n"
+                        "- 网络超时（对接通常需要 1~3 分钟）\n"
+                        "- PDB 结构未能成功获取\n\n"
+                        "建议：稍后重试，或手动上传 PDB 文件。"
+                    )
 
 else:
     # welcome screen

@@ -1,5 +1,4 @@
 output/
 __pycache__/
 *.pyc
-users.yaml
 data/cache/

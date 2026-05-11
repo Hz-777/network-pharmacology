@@ -1,0 +1,11 @@
+cookie:
+  expiry_days: 30
+  key: 76bca5fa8d4c034b1f73ae5998e3a5dabbe6d71c7299be086c39aea4438ad1aa
+  name: netpharm_auth
+credentials:
+  usernames:
+    admin:
+      email: doctor.li1106@gmail.com
+      name: 管理员
+      password: $2b$12$sgHx7lfxPP/nBTkOlvM9tehEPbenUsNl3AlJ.CUzxW.utAcQQvCmO
+      role: admin

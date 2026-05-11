@@ -3,12 +3,15 @@ Disease target retrieval.
 Sources (queried in parallel, results merged):
   1. Open Targets Platform  — GraphQL API, EFO/MONDO IDs, scored 0–1
   2. Harmonizome/DisGeNET   — REST API, literature evidence, free/no key
+  3. UniProt                — REST API, Swiss-Prot disease annotations, free/no key
+  4. NCBI Gene              — E-utilities, disease/phenotype curated associations, free/no key
 Supports both English and Chinese disease names.
 """
 
 import re
 import requests
 import pandas as pd
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from modules.cache import cache_get, cache_set, make_key
 
 OT_API          = "https://api.platform.opentargets.org/api/v4/graphql"
@@ -227,11 +230,107 @@ def _query_harmonizome(disease: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def _query_uniprot(disease: str) -> pd.DataFrame:
+    """
+    Fetch human proteins annotated with a disease from UniProt REST API.
+    Uses cc_disease field (Comments → Disease/Phenotype Descriptions).
+    Returns DataFrame with columns [Gene, Score, Source].
+    Score: 0.5 for Swiss-Prot reviewed, 0.3 for TrEMBL unreviewed.
+    """
+    url = "https://rest.uniprot.org/uniprotkb/search"
+    # Query reviewed (Swiss-Prot) first for quality; fall back to include TrEMBL
+    params = {
+        "query": f"cc_disease:{disease} AND organism_id:9606 AND reviewed:true",
+        "fields": "gene_names,reviewed",
+        "format": "json",
+        "size": 200,
+    }
+    try:
+        resp = requests.get(url, params=params, headers=HEADERS, timeout=20)
+        results = resp.json().get("results", []) if resp.ok else []
+
+        # If very few reviewed hits, also fetch unreviewed
+        if len(results) < 20:
+            params2 = {**params, "query": f"cc_disease:{disease} AND organism_id:9606",
+                       "size": 300}
+            resp2 = requests.get(url, params=params2, headers=HEADERS, timeout=20)
+            results = resp2.json().get("results", []) if resp2.ok else results
+
+        rows = []
+        seen = set()
+        for entry in results:
+            reviewed = entry.get("entryType", "") == "UniProtKB reviewed (Swiss-Prot)"
+            score = 0.5 if reviewed else 0.3
+            for gene_group in entry.get("genes", []):
+                gene_name = (gene_group.get("geneName") or {}).get("value", "")
+                if gene_name and gene_name not in seen:
+                    seen.add(gene_name)
+                    rows.append({"Gene": gene_name, "Score": score, "Source": "UniProt"})
+                    break
+        return pd.DataFrame(rows) if rows else pd.DataFrame()
+    except Exception:
+        return pd.DataFrame()
+
+
+NCBI_EUTILS = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+
+
+def _query_ncbi_gene(disease: str) -> pd.DataFrame:
+    """
+    Fetch human genes associated with a disease via NCBI Gene E-utilities.
+    Uses the disease/phenotype MeSH annotation index — same source as OMIM/ClinVar.
+    Returns DataFrame with columns [Gene, Score, Source].
+    Score fixed at 0.4 (curated NCBI association, no quantitative score available).
+    """
+    try:
+        # Search Gene db: disease/phenotype field + human filter
+        search_resp = requests.get(
+            f"{NCBI_EUTILS}/esearch.fcgi",
+            params={
+                "db": "gene",
+                "term": f"{disease}[disease/phenotype] AND Homo sapiens[Organism]",
+                "retmax": 300,
+                "retmode": "json",
+            },
+            headers=HEADERS,
+            timeout=15,
+        )
+        if not search_resp.ok:
+            return pd.DataFrame()
+        gene_ids = search_resp.json().get("esearchresult", {}).get("idlist", [])
+        if not gene_ids:
+            return pd.DataFrame()
+
+        # Fetch gene symbols in batches of 100
+        rows = []
+        for i in range(0, len(gene_ids), 100):
+            batch = gene_ids[i : i + 100]
+            summary_resp = requests.get(
+                f"{NCBI_EUTILS}/esummary.fcgi",
+                params={"db": "gene", "id": ",".join(batch), "retmode": "json"},
+                headers=HEADERS,
+                timeout=20,
+            )
+            if not summary_resp.ok:
+                continue
+            result = summary_resp.json().get("result", {})
+            for gid in batch:
+                info = result.get(gid, {})
+                symbol = info.get("name", "")
+                if symbol and symbol != "":
+                    rows.append({"Gene": symbol, "Score": 0.4, "Source": "NCBI Gene"})
+        return pd.DataFrame(rows) if rows else pd.DataFrame()
+    except Exception:
+        return pd.DataFrame()
+
+
 def get_disease_targets(disease: str, min_score: float = 0.0,
                         progress_callback=None) -> pd.DataFrame:
     """
-    Retrieve disease-associated gene targets from Open Targets Platform.
+    Retrieve disease-associated gene targets from 4 sources in parallel:
+      Open Targets, Harmonizome/DisGeNET, UniProt, NCBI Gene.
     Accepts English or Chinese disease names.
+    Deduplication priority: Open Targets > UniProt > NCBI Gene > Harmonizome.
     """
     key = make_key("disease_targets", disease, min_score)
     cached = cache_get(key)
@@ -242,37 +341,64 @@ def get_disease_targets(disease: str, min_score: float = 0.0,
     if en_disease != disease and progress_callback:
         progress_callback(f"中文疾病名转换: {disease} → {en_disease}")
 
-    # ── Open Targets ──────────────────────────────────────────────────────────
-    if progress_callback:
-        progress_callback(f"Open Targets: 搜索 [{en_disease}]...")
-    ot_df = pd.DataFrame()
-    efo_id = _search_disease_id(en_disease)
-    if efo_id:
-        if progress_callback:
-            progress_callback(f"Open Targets: 获取靶点（{efo_id}）...")
-        ot_df = _get_associated_targets(efo_id, size=150)
-
-    # ── Harmonizome / DisGeNET ────────────────────────────────────────────────
-    if progress_callback:
-        progress_callback(f"Harmonizome: 搜索 [{en_disease}]...")
-    hz_df = _query_harmonizome(en_disease)
-    if not hz_df.empty and progress_callback:
-        progress_callback(f"Harmonizome: {len(hz_df)} 个靶点")
-
-    # ── Merge: OT takes priority for shared genes ─────────────────────────────
-    if ot_df.empty and hz_df.empty:
+    def _fetch_ot():
+        efo_id = _search_disease_id(en_disease)
+        if efo_id:
+            return _get_associated_targets(efo_id, size=200)
         return pd.DataFrame()
 
-    if not ot_df.empty and not hz_df.empty:
-        ot_genes = set(ot_df["Gene"])
-        hz_only  = hz_df[~hz_df["Gene"].isin(ot_genes)].head(300)
-        df = pd.concat([ot_df, hz_only], ignore_index=True)
-    else:
-        df = ot_df if not ot_df.empty else hz_df
+    tasks = {
+        "Open Targets": _fetch_ot,
+        "UniProt":      lambda: _query_uniprot(en_disease),
+        "NCBI Gene":    lambda: _query_ncbi_gene(en_disease),
+        "Harmonizome":  lambda: _query_harmonizome(en_disease),
+    }
 
-    if min_score > 0 and "Score" in df.columns:
-        df = df[df["Score"] >= min_score]
+    if progress_callback:
+        progress_callback("并行查询 4 个数据库：Open Targets / UniProt / NCBI Gene / Harmonizome ...")
 
-    result = df.reset_index(drop=True)
+    source_dfs: dict = {}
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        future_map = {executor.submit(fn): name for name, fn in tasks.items()}
+        for future in as_completed(future_map):
+            name = future_map[future]
+            try:
+                df = future.result()
+                source_dfs[name] = df
+                if not df.empty and progress_callback:
+                    progress_callback(f"{name}: {len(df)} 个靶点")
+            except Exception as exc:
+                source_dfs[name] = pd.DataFrame()
+                if progress_callback:
+                    progress_callback(f"{name}: 查询失败 ({exc})")
+
+    ot_df  = source_dfs.get("Open Targets", pd.DataFrame())
+    up_df  = source_dfs.get("UniProt",       pd.DataFrame())
+    ncbi_df = source_dfs.get("NCBI Gene",    pd.DataFrame())
+    hz_df  = source_dfs.get("Harmonizome",   pd.DataFrame())
+
+    if all(df.empty for df in [ot_df, up_df, ncbi_df, hz_df]):
+        return pd.DataFrame()
+
+    # Merge with priority: OT > UniProt > NCBI Gene > Harmonizome
+    merged = ot_df.copy()
+    seen_genes = set(merged["Gene"]) if not merged.empty else set()
+
+    # Cap per-source contribution to avoid one source dominating
+    SOURCE_CAP = {"Harmonizome": 400, "NCBI Gene": 200, "UniProt": 300}
+    for extra_df in [up_df, ncbi_df, hz_df]:
+        if extra_df.empty:
+            continue
+        new_rows = extra_df[~extra_df["Gene"].isin(seen_genes)]
+        source = new_rows["Source"].iloc[0] if not new_rows.empty else ""
+        cap = SOURCE_CAP.get(source, 500)
+        new_rows = new_rows.head(cap)
+        seen_genes.update(new_rows["Gene"].tolist())
+        merged = pd.concat([merged, new_rows], ignore_index=True)
+
+    if min_score > 0 and "Score" in merged.columns:
+        merged = merged[merged["Score"] >= min_score]
+
+    result = merged.reset_index(drop=True)
     cache_set(key, result, category="disease")
     return result
