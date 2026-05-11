@@ -1050,7 +1050,17 @@ if st.session_state.compounds_df is not None:
                                 )
                                 st.session_state.docking_scores = scores_df
                             except Exception as e:
-                                st.error(f"对接失败: {e}")
+                                err_str = str(e)
+                                if "timed out" in err_str.lower() or "timeout" in err_str.lower() or "ConnectionError" in type(e).__name__:
+                                    st.error(
+                                        "CB-Dock2 服务连接超时。可能原因：\n"
+                                        "1. 服务器当前负载较高，请稍后重试\n"
+                                        "2. 网络防火墙阻断了对外部服务的访问\n"
+                                        "3. CB-Dock2 主站/备用站均暂时不可用\n\n"
+                                        f"技术详情：{err_str}"
+                                    )
+                                else:
+                                    st.error(f"对接失败: {err_str}")
                                 scores_df = pd.DataFrame()
                         _flush_log()
                         dock_log.empty()

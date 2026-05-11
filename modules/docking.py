@@ -33,6 +33,9 @@ CBDOCK2_BACKUP = "http://183.56.231.194:8001/cb-dock2"
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (network-pharmacology-app/1.0)"}
 TIMEOUT = 30
+UPLOAD_TIMEOUT = (12, 120)   # (connect, read) for large PDB file uploads
+SUBMIT_TIMEOUT = (12, 45)
+POLL_TIMEOUT   = (12, 30)
 
 
 # ── RCSB PDB ─────────────────────────────────────────────────────────────────
@@ -130,44 +133,80 @@ def fetch_pdb_batch(gene_list: list, max_workers: int = 3,
 
 # ── CB-Dock2 ──────────────────────────────────────────────────────────────────
 
+def _probe_cbdock2(base: str) -> bool:
+    """
+    Probe whether a CB-Dock2 base URL is truly serving its API
+    (not just the landing page). Tries the upload endpoint with a HEAD/GET.
+    """
+    try:
+        r = requests.get(
+            f"{base}/php/upload_protein.php",
+            timeout=(8, 10),
+            allow_redirects=False,
+        )
+        # 200 (endpoint exists) or 405 (method not allowed = endpoint exists)
+        # are both good. 301/302 to maintenance page is bad.
+        if r.status_code in (200, 405):
+            return True
+        if r.status_code in (301, 302):
+            loc = r.headers.get("Location", "")
+            return "maintenance" not in loc.lower()
+        # 404/5xx → endpoint missing or server error
+        return False
+    except Exception:
+        return False
+
+
 def _get_cbdock2_base() -> Optional[str]:
-    """Test which CB-Dock2 endpoint is reachable."""
+    """Return the first CB-Dock2 endpoint whose API is actually responding."""
     for base in (CBDOCK2_MAIN, CBDOCK2_BACKUP):
-        try:
-            r = requests.get(base, timeout=8, allow_redirects=False)
-            if r.status_code in (200, 302, 301):
-                if r.status_code in (301, 302):
-                    location = r.headers.get("Location", "")
-                    if "maintenance" in location.lower():
-                        continue
-                return base
-        except Exception:
-            continue
+        if _probe_cbdock2(base):
+            return base
     return None
 
 
+def _upload_pdb(base_url: str, pdb_path: str) -> Optional[str]:
+    """Upload PDB file to CB-Dock2. Returns protein_id or None."""
+    upload_url = f"{base_url}/php/upload_protein.php"
+    last_exc = None
+    for attempt in range(3):
+        try:
+            with open(pdb_path, "rb") as pf:
+                resp = requests.post(
+                    upload_url,
+                    files={"protein_file": ("protein.pdb", pf, "chemical/x-pdb")},
+                    headers=HEADERS,
+                    timeout=UPLOAD_TIMEOUT,
+                )
+            if resp.status_code != 200:
+                return None
+            data = resp.json()
+            pid = data.get("protein_id") or data.get("id")
+            if pid:
+                return str(pid)
+            return None
+        except (requests.Timeout, requests.ConnectionError) as e:
+            last_exc = e
+            if attempt < 2:
+                time.sleep(3 * (attempt + 1))
+            continue
+        except Exception:
+            return None
+    raise last_exc  # propagate so caller can try backup URL
+
+
 def _submit_cbdock2(smiles: str, pdb_content: str,
-                    base_url: str, timeout: int = 120) -> Optional[float]:
+                    base_url: str) -> Optional[float]:
     """
     Submit one SMILES + PDB to CB-Dock2. Returns binding energy (kcal/mol) or None.
+    Raises requests.RequestException on network-level failure (caller may retry with backup).
     """
-    # Write PDB to temp file
     with tempfile.NamedTemporaryFile(suffix=".pdb", delete=False, mode="w") as f:
         f.write(pdb_content)
         pdb_path = f.name
 
     try:
-        upload_url = f"{base_url}/php/upload_protein.php"
-        with open(pdb_path, "rb") as pf:
-            upload_resp = requests.post(
-                upload_url,
-                files={"protein_file": ("protein.pdb", pf, "chemical/x-pdb")},
-                timeout=TIMEOUT,
-            )
-        if upload_resp.status_code != 200:
-            return None
-        upload_data = upload_resp.json()
-        protein_id = upload_data.get("protein_id") or upload_data.get("id")
+        protein_id = _upload_pdb(base_url, pdb_path)
         if not protein_id:
             return None
 
@@ -176,7 +215,8 @@ def _submit_cbdock2(smiles: str, pdb_content: str,
         dock_resp = requests.post(
             dock_url,
             data={"smiles": smiles, "protein_id": protein_id},
-            timeout=timeout,
+            headers=HEADERS,
+            timeout=SUBMIT_TIMEOUT,
         )
         if dock_resp.status_code != 200:
             return None
@@ -185,11 +225,17 @@ def _submit_cbdock2(smiles: str, pdb_content: str,
         if not job_id:
             return None
 
-        # Poll for result
+        # Poll for result (up to ~150 s)
         result_url = f"{base_url}/php/get_result.php"
-        for _ in range(24):  # up to ~120 s
+        for _ in range(30):
             time.sleep(5)
-            r = requests.get(result_url, params={"job_id": job_id}, timeout=TIMEOUT)
+            try:
+                r = requests.get(
+                    result_url, params={"job_id": job_id},
+                    headers=HEADERS, timeout=POLL_TIMEOUT,
+                )
+            except Exception:
+                continue
             if r.status_code == 200:
                 data = r.json()
                 status = data.get("status", "")
@@ -215,21 +261,25 @@ def dock_compound_target(smiles: str, pdb_id: str, pdb_content: str,
                          compound_name: str = "", gene: str = "") -> Optional[float]:
     """
     Dock one compound against one protein. Returns binding energy or None.
-    Uses disk cache (7d).
+    Tries main URL first, falls back to backup on network errors. Uses disk cache (7d).
     """
     key = make_key("docking", smiles, pdb_id)
     cached = cache_get(key)
     if cached is not None:
         return cached
 
-    base = _get_cbdock2_base()
-    if not base:
-        return None
+    for base in (CBDOCK2_MAIN, CBDOCK2_BACKUP):
+        try:
+            score = _submit_cbdock2(smiles, pdb_content, base)
+            if score is not None:
+                cache_set(key, score, category="target")
+            return score
+        except (requests.Timeout, requests.ConnectionError):
+            continue
+        except Exception:
+            return None
 
-    score = _submit_cbdock2(smiles, pdb_content, base)
-    if score is not None:
-        cache_set(key, score, category="target")
-    return score
+    return None
 
 
 def run_docking_matrix(
@@ -346,16 +396,8 @@ def plot_docking_heatmap(score_df: pd.DataFrame) -> bytes:
 
 
 def check_cbdock2_status() -> dict:
-    """Check if CB-Dock2 is reachable. Returns status dict."""
+    """Check if CB-Dock2 API is reachable (probes the upload endpoint). Returns status dict."""
     for label, url in [("主站", CBDOCK2_MAIN), ("备用IP", CBDOCK2_BACKUP)]:
-        try:
-            r = requests.get(url, timeout=8, allow_redirects=False)
-            if r.status_code == 200:
-                return {"available": True, "url": url, "label": label}
-            if r.status_code in (301, 302):
-                loc = r.headers.get("Location", "")
-                if "maintenance" not in loc.lower():
-                    return {"available": True, "url": url, "label": label}
-        except Exception:
-            pass
+        if _probe_cbdock2(url):
+            return {"available": True, "url": url, "label": label}
     return {"available": False, "url": None, "label": None}
