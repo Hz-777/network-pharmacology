@@ -889,49 +889,53 @@ if st.session_state.compounds_df is not None:
                         st.error("❌ CB-Dock2 暂不可用（主站和备用IP均无响应）。对接功能需等待服务恢复。")
 
             # ── 参数选择 ──────────────────────────────────────────────────────
-            _smiles_df   = st.session_state.get("smiles_df")
+            _smiles_df    = st.session_state.get("smiles_df")
             _compounds_df = st.session_state.get("compounds_df")
-            _inter_genes = st.session_state.get("intersection_genes", [])
-            _cent_df     = st.session_state.get("centrality_df")
-
-            # Build avail_comps: prefer PubChem smiles_df, fall back to compounds_df SMILES column
-            avail_comps = pd.DataFrame()
-            if _smiles_df is not None and not _smiles_df.empty:
-                avail_comps = _smiles_df[_smiles_df["SMILES"].notna()].rename(
-                    columns={"name": "name"}
-                ).copy()
-            elif _compounds_df is not None and not _compounds_df.empty and "SMILES" in _compounds_df.columns:
-                _name_col = "mol_name" if "mol_name" in _compounds_df.columns else _compounds_df.columns[0]
-                avail_comps = (
-                    _compounds_df[_compounds_df["SMILES"].notna() & (_compounds_df["SMILES"] != "")]
-                    [[_name_col, "SMILES"]].rename(columns={_name_col: "name"}).copy()
-                )
+            _inter_genes  = st.session_state.get("intersection_genes", [])
+            _cent_df      = st.session_state.get("centrality_df")
 
             if _compounds_df is None:
                 st.info("请先点击「开始一键分析」完成分析流程后再进行分子对接。")
-            elif avail_comps.empty:
-                st.warning(
-                    "当前活性成分均未获取到 SMILES 结构式（PubChem/TCMSP 均无数据），"
-                    "无法进行分子对接。可尝试手动在下方输入 SMILES。"
-                )
-                # Manual SMILES entry fallback
-                with st.expander("手动输入化合物 SMILES"):
-                    manual_name = st.text_input("化合物名称", key="dock_manual_name")
-                    manual_smiles = st.text_input("SMILES 字符串", key="dock_manual_smiles")
-                    if manual_name and manual_smiles:
-                        avail_comps = pd.DataFrame([{"name": manual_name, "SMILES": manual_smiles}])
-                        st.success(f"已添加：{manual_name}")
+            else:
+                # 化合物名称来自 compounds_df，SMILES 在对接时按需实时查询
+                _name_col = "mol_name" if "mol_name" in _compounds_df.columns else _compounds_df.columns[0]
 
-            if not avail_comps.empty:
+                # 构建 avail_comps：优先已有 SMILES，其余按名称列出（对接时再查）
+                _smiles_map = {}
+                if _smiles_df is not None and not _smiles_df.empty and "SMILES" in _smiles_df.columns:
+                    for _, r in _smiles_df.iterrows():
+                        if r.get("SMILES"):
+                            _smiles_map[r.get("name", "")] = r["SMILES"]
+                if "SMILES" in _compounds_df.columns:
+                    for _, r in _compounds_df.iterrows():
+                        nm = r.get(_name_col, "")
+                        if nm and r.get("SMILES") and nm not in _smiles_map:
+                            _smiles_map[nm] = r["SMILES"]
+
+                all_comp_names = _compounds_df[_name_col].dropna().unique().tolist()
+                avail_comps = pd.DataFrame({
+                    "name": all_comp_names,
+                    "SMILES": [_smiles_map.get(n, "") for n in all_comp_names],
+                    "has_smiles": [bool(_smiles_map.get(n)) for n in all_comp_names],
+                })
+
                 col_d1, col_d2 = st.columns(2)
 
                 with col_d1:
                     st.markdown("**① 选择化合物**")
-                    comp_options = avail_comps["name"].dropna().unique().tolist()
+                    # 优先推荐已有 SMILES 的化合物
+                    has_smiles = avail_comps[avail_comps["has_smiles"]]["name"].tolist()
+                    no_smiles  = avail_comps[~avail_comps["has_smiles"]]["name"].tolist()
+                    comp_options = has_smiles + no_smiles
+                    default_comps = has_smiles[:3] if has_smiles else comp_options[:3]
+                    if no_smiles and not has_smiles:
+                        st.caption("⚠️ 以下化合物 SMILES 将在对接时从 PubChem 实时获取")
+                    elif no_smiles:
+                        st.caption(f"✅ {len(has_smiles)} 个已有 SMILES，{len(no_smiles)} 个将实时查询")
                     selected_comps = st.multiselect(
                         "选择参与对接的化合物（建议 ≤5 个）",
                         options=comp_options,
-                        default=comp_options[:3] if len(comp_options) >= 3 else comp_options,
+                        default=default_comps,
                         key="dock_comp_sel",
                     )
 
@@ -985,10 +989,21 @@ if st.session_state.compounds_df is not None:
                         dock_log.text("\n".join(dock_status[-8:]))
 
                     comp_inputs = []
+                    from modules.pubchem import get_compound_info as _gci
                     for cn in selected_comps:
                         row = avail_comps[avail_comps["name"] == cn]
-                        if not row.empty:
-                            comp_inputs.append({"name": cn, "SMILES": row["SMILES"].iloc[0]})
+                        smiles = row["SMILES"].iloc[0] if not row.empty else ""
+                        if not smiles:
+                            dock_cb(f"PubChem 实时查询 SMILES: {cn} ...")
+                            try:
+                                info = _gci(cn)
+                                smiles = info.get("SMILES", "") if info else ""
+                            except Exception:
+                                smiles = ""
+                        if smiles:
+                            comp_inputs.append({"name": cn, "SMILES": smiles})
+                        else:
+                            dock_cb(f"⚠️ {cn}: 未找到 SMILES，跳过")
 
                     dock_cb("正在从 RCSB 获取靶蛋白结构...")
                     if target_mode == "从 RCSB 自动获取（按 Hub 基因）":
