@@ -370,16 +370,27 @@ def plot_docking_heatmap(score_df: pd.DataFrame) -> bytes:
         "axes.unicode_minus": False,
     })
 
-    if score_df.empty:
+    def _no_result_png(msg: str) -> bytes:
         fig, ax = plt.subplots(figsize=(6, 3))
-        ax.text(0.5, 0.5, "无对接结果", ha="center", va="center", fontsize=14)
+        ax.text(0.5, 0.5, msg, ha="center", va="center", fontsize=13)
         ax.axis("off")
         buf = io.BytesIO()
         fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
         plt.close(fig)
         return buf.getvalue()
 
+    if score_df.empty:
+        return _no_result_png("无对接结果")
+
     data = score_df.copy().astype(float)
+
+    # If every cell is NaN, docking failed entirely
+    if data.isna().all().all():
+        return _no_result_png(
+            "所有对接任务均失败\n"
+            "（CB-Dock2 服务暂时不可用，请稍后重试）"
+        )
+
     n_comp, n_gene = data.shape
     fig_w = max(8, n_gene * 1.2)
     fig_h = max(4, n_comp * 0.8)
@@ -387,9 +398,19 @@ def plot_docking_heatmap(score_df: pd.DataFrame) -> bytes:
     fig, ax = plt.subplots(figsize=(fig_w, fig_h))
 
     # Color: lower (more negative) = better binding → deeper blue/purple
-    vmin = data.min().min()
-    vmax = min(0, data.max().max())
-    norm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=(vmin + vmax) / 2, vmax=max(vmax, vmin + 0.01))
+    valid = data.values[~np.isnan(data.values)]
+    vmin = float(valid.min()) if len(valid) else -10.0
+    vmax_raw = float(valid.max()) if len(valid) else 0.0
+    vmax = min(0.0, vmax_raw) if vmax_raw <= 0 else vmax_raw
+
+    # TwoSlopeNorm requires vmin < vcenter < vmax; fall back to Normalize when degenerate
+    vcenter = (vmin + vmax) / 2
+    if vmin < vcenter < vmax:
+        norm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=vcenter, vmax=vmax)
+    else:
+        spread = max(abs(vmax - vmin), 0.01)
+        norm = mcolors.Normalize(vmin=vmin - spread * 0.01, vmax=vmax + spread * 0.01)
+
     cmap = plt.cm.RdYlBu_r
 
     im = ax.imshow(data.values, aspect="auto", cmap=cmap,

@@ -1068,13 +1068,29 @@ if st.session_state.compounds_df is not None:
                 # ── 显示结果 ──────────────────────────────────────────────────
                 _scores = st.session_state.get("docking_scores")
                 if _scores is not None and not _scores.empty:
-                    st.markdown("#### 对接结果热图")
-                    st.caption("结合能（kcal/mol）：数值越负代表结合越强")
-                    heatmap_png = plot_docking_heatmap(_scores)
-                    st.image(heatmap_png, use_container_width=True)
+                    import numpy as _np
+                    _all_nan = _scores.astype(float).isna().all().all()
+                    if _all_nan:
+                        st.warning(
+                            "对接计算完成，但所有任务均未获得结合能评分。\n\n"
+                            "**可能原因：**\n"
+                            "- CB-Dock2 服务器当前无响应或 API 端点变更\n"
+                            "- Streamlit Cloud 出口 IP 被服务器防火墙拦截\n\n"
+                            "建议稍后重试，或前往 https://cadd.labshare.cn/cb-dock2/ 手动对接。"
+                        )
+                    else:
+                        st.markdown("#### 对接结果热图")
+                        st.caption("结合能（kcal/mol）：数值越负代表结合越强")
+                        heatmap_png = plot_docking_heatmap(_scores)
+                        st.image(heatmap_png, use_container_width=True)
 
-                    st.markdown("#### 原始数据")
-                    st.dataframe(_scores.style.format("{:.2f}"), use_container_width=True)
+                        st.markdown("#### 原始数据")
+                        st.dataframe(
+                            _scores.astype(float).style.format(
+                                lambda v: f"{v:.2f}" if not _np.isnan(v) else "N/A"
+                            ),
+                            use_container_width=True,
+                        )
 
                     buf_d = io.BytesIO()
                     _scores.to_excel(buf_d, index=True)
