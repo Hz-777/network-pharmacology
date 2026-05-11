@@ -28,7 +28,8 @@ def get_compound_info(compound_name: str) -> dict:
 
     key = make_key("pubchem", compound_name)
     cached = cache_get(key)
-    if cached is not None:
+    # Only use cache when SMILES was successfully retrieved; skip stale empty results
+    if cached is not None and cached.get("SMILES"):
         return cached
 
     # PubChem returns CanonicalSMILES as "SMILES" and IsomericSMILES as "IsomericSMILES"
@@ -54,5 +55,6 @@ def get_compound_info(compound_name: str) -> dict:
     except Exception:
         pass
 
-    cache_set(key, result)
+    if result.get("SMILES"):  # only cache successful results
+        cache_set(key, result, category="chemical")
     return result

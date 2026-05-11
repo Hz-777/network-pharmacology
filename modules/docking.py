@@ -37,103 +37,70 @@ TIMEOUT = 30
 
 # ── RCSB PDB ─────────────────────────────────────────────────────────────────
 
-def _search_pdb_by_gene(gene_symbol: str) -> Optional[str]:
+
+
+def fetch_pdb_for_gene(gene_symbol: str) -> Optional[tuple]:
     """
-    Search RCSB for the best PDB entry for a human gene.
-    Returns PDB ID (4-char string) or None.
-    """
-    query = {
-        "query": {
-            "type": "group",
-            "logical_operator": "and",
-            "nodes": [
-                {
-                    "type": "terminal",
-                    "service": "text",
-                    "parameters": {
-                        "attribute": "rcsb_entity_source_organism.taxonomy_lineage.name",
-                        "operator": "exact_match",
-                        "value": "Homo sapiens",
-                    },
-                },
-                {
-                    "type": "terminal",
-                    "service": "text",
-                    "parameters": {
-                        "attribute": "rcsb_polymer_entity.rcsb_gene_name.value",
-                        "operator": "exact_match",
-                        "value": gene_symbol,
-                    },
-                },
-            ],
-        },
-        "request_options": {
-            "paginate": {"start": 0, "rows": 5},
-            "sort": [{"sort_by": "score", "direction": "desc"}],
-            "scoring_strategy": "combined",
-        },
-        "return_type": "entry",
-    }
-
-    try:
-        resp = requests.post(RCSB_SEARCH, json=query, timeout=TIMEOUT)
-        if resp.status_code == 200:
-            hits = resp.json().get("result_set", [])
-            if hits:
-                return hits[0]["identifier"]
-    except Exception:
-        pass
-
-    # Fallback: full-text search on gene symbol
-    fallback = {
-        "query": {
-            "type": "terminal",
-            "service": "full_text",
-            "parameters": {"value": f"{gene_symbol} homo sapiens"},
-        },
-        "request_options": {
-            "paginate": {"start": 0, "rows": 3},
-            "sort": [{"sort_by": "score", "direction": "desc"}],
-        },
-        "return_type": "entry",
-    }
-    try:
-        resp = requests.post(RCSB_SEARCH, json=fallback, timeout=TIMEOUT)
-        if resp.status_code == 200:
-            hits = resp.json().get("result_set", [])
-            if hits:
-                return hits[0]["identifier"]
-    except Exception:
-        pass
-
-    return None
-
-
-def fetch_pdb_for_gene(gene_symbol: str) -> Optional[str]:
-    """
-    Fetch PDB file content (string) for a gene symbol.
-    Returns PDB text, or None if not found.
-    Uses disk cache (30d).
+    Fetch PDB file content for a gene symbol.
+    Returns (pdb_id, pdb_text) or None if not found.
+    Uses disk cache (30d); failed lookups are not cached.
     """
     key = make_key("pdb_for_gene", gene_symbol)
     cached = cache_get(key)
-    if cached is not None:
+    if cached is not None:  # only truthy (pdb_id, content) tuples are stored
         return cached
 
-    pdb_id = _search_pdb_by_gene(gene_symbol)
-    if not pdb_id:
-        return None
-
-    try:
-        resp = requests.get(RCSB_DOWNLOAD.format(pdb_id), timeout=60)
-        if resp.status_code == 200:
-            content = resp.text
-            cache_set(key, (pdb_id, content), category="chemical")
-            return pdb_id, content
-    except Exception:
-        pass
+    # Get up to 3 candidate PDB IDs and try each until download succeeds
+    candidates = _get_pdb_candidates(gene_symbol, top_n=3)
+    for pdb_id in candidates:
+        try:
+            resp = requests.get(RCSB_DOWNLOAD.format(pdb_id), timeout=60)
+            if resp.status_code == 200 and resp.text.strip():
+                content = resp.text
+                cache_set(key, (pdb_id, content), category="chemical")
+                return pdb_id, content
+        except Exception:
+            continue
 
     return None
+
+
+def _get_pdb_candidates(gene_symbol: str, top_n: int = 3) -> list:
+    """Return up to top_n PDB IDs for a gene from RCSB search."""
+    for q in [
+        {
+            "query": {
+                "type": "group",
+                "logical_operator": "and",
+                "nodes": [
+                    {"type": "terminal", "service": "full_text",
+                     "parameters": {"value": gene_symbol}},
+                    {"type": "terminal", "service": "text", "parameters": {
+                        "attribute": "rcsb_entity_source_organism.scientific_name",
+                        "operator": "exact_match", "value": "Homo sapiens"}},
+                ],
+            },
+            "request_options": {"paginate": {"start": 0, "rows": top_n},
+                                 "sort": [{"sort_by": "score", "direction": "desc"}]},
+            "return_type": "entry",
+        },
+        {
+            "query": {"type": "terminal", "service": "full_text",
+                      "parameters": {"value": f"{gene_symbol} homo sapiens"}},
+            "request_options": {"paginate": {"start": 0, "rows": top_n},
+                                 "sort": [{"sort_by": "score", "direction": "desc"}]},
+            "return_type": "entry",
+        },
+    ]:
+        try:
+            resp = requests.post(RCSB_SEARCH, json=q, timeout=TIMEOUT)
+            if resp.status_code == 200:
+                hits = resp.json().get("result_set", [])
+                if hits:
+                    return [h["identifier"] for h in hits[:top_n]]
+        except Exception:
+            continue
+    return []
 
 
 def fetch_pdb_batch(gene_list: list, max_workers: int = 3,
