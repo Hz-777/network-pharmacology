@@ -984,9 +984,13 @@ if st.session_state.compounds_df is not None:
                     dock_log = st.empty()
                     dock_status = []
 
-                    def dock_cb(msg):
+                    # Thread-safe logger: only appends to list (no Streamlit calls in threads)
+                    def _bg_cb(msg):
                         dock_status.append(msg)
-                        dock_log.text("\n".join(dock_status[-8:]))
+
+                    # UI refresh helper: only called from main thread
+                    def _flush_log():
+                        dock_log.text("\n".join(dock_status[-10:]))
 
                     comp_inputs = []
                     from modules.pubchem import get_compound_info as _gci
@@ -994,7 +998,8 @@ if st.session_state.compounds_df is not None:
                         row = avail_comps[avail_comps["name"] == cn]
                         smiles = row["SMILES"].iloc[0] if not row.empty else ""
                         if not smiles:
-                            dock_cb(f"PubChem 实时查询 SMILES: {cn} ...")
+                            _bg_cb(f"PubChem 查询 SMILES: {cn} ...")
+                            _flush_log()
                             try:
                                 info = _gci(cn)
                                 smiles = info.get("SMILES", "") if info else ""
@@ -1002,15 +1007,20 @@ if st.session_state.compounds_df is not None:
                                 smiles = ""
                         if smiles:
                             comp_inputs.append({"name": cn, "SMILES": smiles})
+                            _bg_cb(f"✅ {cn}: SMILES 已获取")
                         else:
-                            dock_cb(f"⚠️ {cn}: 未找到 SMILES，跳过")
+                            _bg_cb(f"⚠️ {cn}: 未找到 SMILES，跳过")
+                    _flush_log()
 
-                    dock_cb("正在从 RCSB 获取靶蛋白结构...")
+                    _bg_cb("正在从 RCSB 获取靶蛋白结构...")
+                    _flush_log()
                     if target_mode == "从 RCSB 自动获取（按 Hub 基因）":
                         with st.spinner(f"下载 {len(selected_genes)} 个蛋白结构..."):
+                            # Pass thread-safe callback (no Streamlit calls inside)
                             pdb_results = fetch_pdb_batch(
-                                selected_genes, max_workers=3, progress_callback=dock_cb
+                                selected_genes, max_workers=3, progress_callback=_bg_cb
                             )
+                        _flush_log()
                     else:
                         pdb_results = {g: ("uploaded", c) for g, c in uploaded_pdbs.items()}
 
@@ -1020,25 +1030,29 @@ if st.session_state.compounds_df is not None:
                         if result:
                             pdb_id, pdb_content = result
                             target_inputs.append({"gene": gene, "pdb_id": pdb_id, "pdb_content": pdb_content})
-                            dock_cb(f"✅ {gene}: PDB {pdb_id}")
+                            _bg_cb(f"✅ {gene}: PDB {pdb_id}")
                         else:
-                            dock_cb(f"⚠️ {gene}: 未找到 PDB 结构，跳过")
+                            _bg_cb(f"⚠️ {gene}: 未找到 PDB 结构，跳过")
+                    _flush_log()
 
                     if not target_inputs:
                         st.error("未能获取任何靶蛋白结构，请检查网络连接或手动上传 PDB 文件。")
                     elif not comp_inputs:
-                        st.error("未找到所选化合物的 SMILES，请重新运行主分析流程。")
+                        st.error("未找到所选化合物的 SMILES，请检查网络连接后重试。")
                     else:
-                        dock_cb(f"\n开始对接：{len(comp_inputs)} 个化合物 × {len(target_inputs)} 个蛋白...")
+                        _bg_cb(f"\n开始对接：{len(comp_inputs)} 个化合物 × {len(target_inputs)} 个蛋白...")
+                        _flush_log()
                         with st.spinner("对接计算中，请耐心等待..."):
                             try:
                                 scores_df = run_docking_matrix(
-                                    comp_inputs, target_inputs, progress_callback=dock_cb
+                                    comp_inputs, target_inputs,
+                                    progress_callback=_bg_cb,  # thread-safe
                                 )
                                 st.session_state.docking_scores = scores_df
                             except Exception as e:
                                 st.error(f"对接失败: {e}")
                                 scores_df = pd.DataFrame()
+                        _flush_log()
                         dock_log.empty()
 
                 # ── 显示结果 ──────────────────────────────────────────────────
