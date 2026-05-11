@@ -31,9 +31,10 @@ def get_compound_info(compound_name: str) -> dict:
     if cached is not None:
         return cached
 
+    # PubChem returns CanonicalSMILES as "SMILES" and IsomericSMILES as "IsomericSMILES"
     url = (
         f"{PUBCHEM_API}/compound/name/{requests.utils.quote(compound_name)}"
-        "/property/MolecularFormula,MolecularWeight,CanonicalSMILES,IsomericSMILES,IUPACName/JSON"
+        "/property/MolecularFormula,MolecularWeight,CanonicalSMILES,IsomericSMILES/JSON"
     )
     try:
         data = _fetch_pubchem(url)
@@ -41,7 +42,13 @@ def get_compound_info(compound_name: str) -> dict:
         if props:
             p = props[0]
             result["CID"] = p.get("CID")
-            result["SMILES"] = p.get("IsomericSMILES") or p.get("CanonicalSMILES")
+            # Field name varies: "IsomericSMILES", "SMILES", or "CanonicalSMILES"
+            result["SMILES"] = (
+                p.get("IsomericSMILES")
+                or p.get("SMILES")
+                or p.get("CanonicalSMILES")
+                or p.get("ConnectivitySMILES")
+            )
             result["formula"] = p.get("MolecularFormula")
             result["MW"] = p.get("MolecularWeight")
     except Exception:
