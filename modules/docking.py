@@ -33,9 +33,10 @@ CBDOCK2_BACKUP = "http://183.56.231.194:8001/cb-dock2"
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (network-pharmacology-app/1.0)"}
 TIMEOUT = 30
-UPLOAD_TIMEOUT = (12, 120)   # (connect, read) for large PDB file uploads
-SUBMIT_TIMEOUT = (12, 45)
-POLL_TIMEOUT   = (12, 30)
+UPLOAD_TIMEOUT = (10, 45)   # (connect, read) for PDB file uploads
+SUBMIT_TIMEOUT = (10, 25)
+POLL_TIMEOUT   = (10, 20)
+POLL_ROUNDS    = 18          # 18 × 5 s = 90 s max per job
 
 
 # ── RCSB PDB ─────────────────────────────────────────────────────────────────
@@ -166,10 +167,11 @@ def _get_cbdock2_base() -> Optional[str]:
 
 
 def _upload_pdb(base_url: str, pdb_path: str) -> Optional[str]:
-    """Upload PDB file to CB-Dock2. Returns protein_id or None."""
+    """Upload PDB file to CB-Dock2. Returns protein_id or None.
+    Retries once on network error; re-raises so caller can try backup URL."""
     upload_url = f"{base_url}/php/upload_protein.php"
     last_exc = None
-    for attempt in range(3):
+    for attempt in range(2):
         try:
             with open(pdb_path, "rb") as pf:
                 resp = requests.post(
@@ -182,17 +184,15 @@ def _upload_pdb(base_url: str, pdb_path: str) -> Optional[str]:
                 return None
             data = resp.json()
             pid = data.get("protein_id") or data.get("id")
-            if pid:
-                return str(pid)
-            return None
+            return str(pid) if pid else None
         except (requests.Timeout, requests.ConnectionError) as e:
             last_exc = e
-            if attempt < 2:
-                time.sleep(3 * (attempt + 1))
+            if attempt == 0:
+                time.sleep(3)
             continue
         except Exception:
             return None
-    raise last_exc  # propagate so caller can try backup URL
+    raise last_exc
 
 
 def _submit_cbdock2(smiles: str, pdb_content: str,
@@ -225,9 +225,9 @@ def _submit_cbdock2(smiles: str, pdb_content: str,
         if not job_id:
             return None
 
-        # Poll for result (up to ~150 s)
+        # Poll for result (up to ~90 s)
         result_url = f"{base_url}/php/get_result.php"
-        for _ in range(30):
+        for _ in range(POLL_ROUNDS):
             time.sleep(5)
             try:
                 r = requests.get(
@@ -286,34 +286,63 @@ def run_docking_matrix(
     compounds: list,            # list of {"name": str, "SMILES": str}
     targets: list,              # list of {"gene": str, "pdb_id": str, "pdb_content": str}
     progress_callback=None,
+    max_workers: int = 3,
 ) -> pd.DataFrame:
     """
-    Run all-vs-all docking. Returns DataFrame rows=compounds, cols=genes.
+    Run all-vs-all docking in parallel. Returns DataFrame rows=compounds, cols=genes.
     Scores are binding energies (kcal/mol, negative = better binding).
     """
-    rows = {}
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    import threading
+
     total = len(compounds) * len(targets)
-    done = 0
+    counter = {"done": 0}
+    lock = threading.Lock()
 
-    for comp in compounds:
-        name = comp["name"]
-        smiles = comp["SMILES"]
-        row = {}
-        for tgt in targets:
-            gene = tgt["gene"]
-            pdb_id = tgt["pdb_id"]
-            pdb_content = tgt["pdb_content"]
-            score = dock_compound_target(smiles, pdb_id, pdb_content, name, gene)
-            row[gene] = score
-            done += 1
-            if progress_callback:
-                progress_callback(
-                    f"对接进度 {done}/{total}: {name} × {gene} → "
-                    f"{f'{score:.2f} kcal/mol' if score is not None else '失败'}"
-                )
-        rows[name] = row
+    # Build all (comp, tgt) task pairs
+    tasks = [
+        (comp, tgt)
+        for comp in compounds
+        for tgt in targets
+    ]
 
-    df = pd.DataFrame(rows).T
+    results = {}  # (comp_name, gene) → score
+
+    def _dock_one(args):
+        comp, tgt = args
+        name    = comp["name"]
+        smiles  = comp["SMILES"]
+        gene    = tgt["gene"]
+        pdb_id  = tgt["pdb_id"]
+        pdb_content = tgt["pdb_content"]
+        score = dock_compound_target(smiles, pdb_id, pdb_content, name, gene)
+        with lock:
+            counter["done"] += 1
+            done = counter["done"]
+        if progress_callback:
+            progress_callback(
+                f"对接进度 {done}/{total}: {name} × {gene} → "
+                f"{f'{score:.2f} kcal/mol' if score is not None else '失败'}"
+            )
+        return (name, gene), score
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(_dock_one, t) for t in tasks]
+        for future in as_completed(futures):
+            try:
+                key, score = future.result()
+                results[key] = score
+            except Exception:
+                pass
+
+    # Assemble DataFrame
+    comp_names = [c["name"] for c in compounds]
+    gene_names  = [t["gene"] for t in targets]
+    data = {
+        name: {gene: results.get((name, gene)) for gene in gene_names}
+        for name in comp_names
+    }
+    df = pd.DataFrame(data).T
     df.index.name = "Compound"
     return df
 
