@@ -890,17 +890,43 @@ if st.session_state.compounds_df is not None:
 
             # ── 参数选择 ──────────────────────────────────────────────────────
             _smiles_df   = st.session_state.get("smiles_df")
+            _compounds_df = st.session_state.get("compounds_df")
             _inter_genes = st.session_state.get("intersection_genes", [])
             _cent_df     = st.session_state.get("centrality_df")
 
-            if _smiles_df is None or _smiles_df.empty:
-                st.info("请先完成分析流程（步骤1~6），获得化合物 SMILES 后再进行分子对接。")
-            else:
+            # Build avail_comps: prefer PubChem smiles_df, fall back to compounds_df SMILES column
+            avail_comps = pd.DataFrame()
+            if _smiles_df is not None and not _smiles_df.empty:
+                avail_comps = _smiles_df[_smiles_df["SMILES"].notna()].rename(
+                    columns={"name": "name"}
+                ).copy()
+            elif _compounds_df is not None and not _compounds_df.empty and "SMILES" in _compounds_df.columns:
+                _name_col = "mol_name" if "mol_name" in _compounds_df.columns else _compounds_df.columns[0]
+                avail_comps = (
+                    _compounds_df[_compounds_df["SMILES"].notna() & (_compounds_df["SMILES"] != "")]
+                    [[_name_col, "SMILES"]].rename(columns={_name_col: "name"}).copy()
+                )
+
+            if _compounds_df is None:
+                st.info("请先点击「开始一键分析」完成分析流程后再进行分子对接。")
+            elif avail_comps.empty:
+                st.warning(
+                    "当前活性成分均未获取到 SMILES 结构式（PubChem/TCMSP 均无数据），"
+                    "无法进行分子对接。可尝试手动在下方输入 SMILES。"
+                )
+                # Manual SMILES entry fallback
+                with st.expander("手动输入化合物 SMILES"):
+                    manual_name = st.text_input("化合物名称", key="dock_manual_name")
+                    manual_smiles = st.text_input("SMILES 字符串", key="dock_manual_smiles")
+                    if manual_name and manual_smiles:
+                        avail_comps = pd.DataFrame([{"name": manual_name, "SMILES": manual_smiles}])
+                        st.success(f"已添加：{manual_name}")
+
+            if not avail_comps.empty:
                 col_d1, col_d2 = st.columns(2)
 
                 with col_d1:
                     st.markdown("**① 选择化合物**")
-                    avail_comps = _smiles_df[_smiles_df["SMILES"].notna()].copy()
                     comp_options = avail_comps["name"].dropna().unique().tolist()
                     selected_comps = st.multiselect(
                         "选择参与对接的化合物（建议 ≤5 个）",
