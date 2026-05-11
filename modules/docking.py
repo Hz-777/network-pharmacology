@@ -400,17 +400,12 @@ def plot_docking_heatmap(score_df: pd.DataFrame) -> bytes:
     # Color: lower (more negative) = better binding → deeper blue/purple
     valid = data.values[~np.isnan(data.values)]
     vmin = float(valid.min()) if len(valid) else -10.0
-    vmax_raw = float(valid.max()) if len(valid) else 0.0
-    vmax = min(0.0, vmax_raw) if vmax_raw <= 0 else vmax_raw
-
-    # TwoSlopeNorm requires vmin < vcenter < vmax; fall back to Normalize when degenerate
-    vcenter = (vmin + vmax) / 2
-    if vmin < vcenter < vmax:
-        norm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=vcenter, vmax=vmax)
-    else:
-        spread = max(abs(vmax - vmin), 0.01)
-        norm = mcolors.Normalize(vmin=vmin - spread * 0.01, vmax=vmax + spread * 0.01)
-
+    vmax = float(valid.max()) if len(valid) else 0.0
+    spread = vmax - vmin
+    if spread < 0.01:          # all values essentially equal → pad symmetrically
+        vmin -= 1.0
+        vmax += 1.0
+    norm = mcolors.Normalize(vmin=vmin, vmax=vmax)
     cmap = plt.cm.RdYlBu_r
 
     im = ax.imshow(data.values, aspect="auto", cmap=cmap,
