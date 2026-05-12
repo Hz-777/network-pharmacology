@@ -1,0 +1,23 @@
+name: Keep Streamlit Apps Alive
+
+on:
+  schedule:
+    # Every 20 minutes (UTC). GitHub Actions free tier allows this.
+    - cron: '*/20 * * * *'
+  workflow_dispatch:   # allow manual trigger from GitHub Actions UI
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping network-pharmacology app
+        run: |
+          curl -s -o /dev/null -w "network-pharmacology: %{http_code}\n" \
+            --max-time 30 \
+            "https://network-pharmacology.streamlit.app" || true
+
+      - name: Ping wb-analyzer app
+        run: |
+          curl -s -o /dev/null -w "wb-analyzer: %{http_code}\n" \
+            --max-time 30 \
+            "https://wb-analyzer.streamlit.app" || true
