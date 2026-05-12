@@ -14,10 +14,10 @@ jobs:
         run: |
           curl -s -o /dev/null -w "network-pharmacology: %{http_code}\n" \
             --max-time 30 \
-            "https://network-pharmacology.streamlit.app" || true
+            "https://network-pharmacology-anxtzvpwspgse53tjz6qjr.streamlit.app" || true
 
       - name: Ping wb-analyzer app
         run: |
           curl -s -o /dev/null -w "wb-analyzer: %{http_code}\n" \
             --max-time 30 \
-            "https://wb-analyzer.streamlit.app" || true
+            "https://wb-analyzer-mr7crsvhb64fsuyiqmumwu.streamlit.app" || true
